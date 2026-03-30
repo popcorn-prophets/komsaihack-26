@@ -16,13 +16,20 @@ Create a new API key in <https://aistudio.google.com> and update `.env.local` wi
 
 ## 4. Set up Telegram bot
 
-Create a new bot named `project_hermes_<your-name>_bot`.
+Go to [telegram](https://web.telegram.org/k/#@BotFather) and press Start.
+
+Create a new bot named `project_hermes_<your-name>_bot` by typing `/newbot`.
 
 Update `.env.local` with the bot token, webhook secret token, and bot name.
 
 Run ngrok to expose the development server to the internet:
 
+Need to have a ngrok account first [ngrok]https://dashboard.ngrok.com/signup
+
+Go to Authtoken and use
+
 ```sh
+ngrok config add-authtoken <Ngrok-Authtoken>
 ngrok http 3000
 ```
 
@@ -44,6 +51,9 @@ pnpm install
 ```
 
 ## 6. Start database
+
+Make an account in [Supabase]`https://supabase.com/dashboard/sign-in?returnTo=%2Forg`
+Get Project URL and Publishable key -> .env.local
 
 ```bash
 supabase start
