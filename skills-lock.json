@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "chat-sdk": {
+      "source": "vercel/chat",
+      "sourceType": "github",
+      "computedHash": "49eb23d4e0d1db1c7ddd403d67f56b877d87532d3c8c99f7977aa4fb4b025319"
+    },
     "next-best-practices": {
       "source": "vercel-labs/next-skills",
       "sourceType": "github",
