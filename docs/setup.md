@@ -52,13 +52,13 @@ pnpm install
 
 ## 6. Start database
 
-- Make an account in [Supabase]`https://supabase.com/dashboard/sign-in?returnTo=%2Forg`
-- Get Project URL and Publishable key -> .env.local
 - Have Docker Desktop installed and running
 
 ```bash
 pnpx supabase start
 ```
+
+- Put the publishable and url keys to env
 
 ## 7. Run the development server
 
