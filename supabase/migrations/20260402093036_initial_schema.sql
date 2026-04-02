@@ -194,3 +194,10 @@ ON public.advisory_recipients
 FOR SELECT
 TO authenticated
 USING ((select auth.role()) = 'authenticated');
+
+CREATE POLICY "Backend can update advisory recipients"
+ON public.advisory_recipients
+FOR UPDATE
+TO service_role
+USING (true)
+WITH CHECK (true);
