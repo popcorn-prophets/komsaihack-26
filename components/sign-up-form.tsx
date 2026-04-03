@@ -1,7 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/client';
+import { createBootstrapAdminAction } from '@/lib/auth/bootstrap-actions';
+import type { AuthActionState } from '@/lib/auth/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,97 +14,110 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useActionState } from 'react';
+
+const INITIAL_STATE: AuthActionState = {
+  status: 'idle',
+};
+
+function fieldError(
+  state: AuthActionState,
+  name: 'fullName' | 'email' | 'password' | 'confirmPassword'
+) {
+  return state.fieldErrors?.[name]?.[0];
+}
 
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
-
-    if (password !== repeatPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
-      if (error) throw error;
-      router.push('/auth/sign-up-success');
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [state, action, pending] = useActionState(
+    createBootstrapAdminAction,
+    INITIAL_STATE
+  );
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+          <CardTitle className="text-2xl">Create the first admin</CardTitle>
+          <CardDescription>
+            This bootstrap form works only until the first account is created.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignUp}>
+          <form action={action}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  placeholder="Alex Reyes"
+                />
+                {fieldError(state, 'fullName') ? (
+                  <p className="text-sm text-red-500">
+                    {fieldError(state, 'fullName')}
+                  </p>
+                ) : null}
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="m@example.com"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                 />
+                {fieldError(state, 'email') ? (
+                  <p className="text-sm text-red-500">
+                    {fieldError(state, 'email')}
+                  </p>
+                ) : null}
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <Input id="password" name="password" type="password" required />
+                {fieldError(state, 'password') ? (
+                  <p className="text-sm text-red-500">
+                    {fieldError(state, 'password')}
+                  </p>
+                ) : null}
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
+                  <Label htmlFor="confirmPassword">Repeat password</Label>
                 </div>
                 <Input
-                  id="repeat-password"
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
                 />
+                {fieldError(state, 'confirmPassword') ? (
+                  <p className="text-sm text-red-500">
+                    {fieldError(state, 'confirmPassword')}
+                  </p>
+                ) : null}
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating an account...' : 'Sign up'}
+              {state.message ? (
+                <p
+                  className={cn(
+                    'text-sm',
+                    state.status === 'success'
+                      ? 'text-emerald-600'
+                      : 'text-red-500'
+                  )}
+                >
+                  {state.message}
+                </p>
+              ) : null}
+              <Button type="submit" className="w-full" disabled={pending}>
+                {pending ? 'Creating admin account...' : 'Create admin account'}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

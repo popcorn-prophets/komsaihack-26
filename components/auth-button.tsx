@@ -1,19 +1,30 @@
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { createClient } from '@/lib/supabase/server';
 import { LogoutButton } from './logout-button';
+import {
+  getCurrentUser,
+  isBootstrapRegistrationOpen,
+  userHasRole,
+} from '@/lib/auth/dal';
 
 export async function AuthButton() {
-  const supabase = await createClient();
-
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
-
-  const user = data?.claims;
+  const [user, bootstrapOpen] = await Promise.all([
+    getCurrentUser(),
+    isBootstrapRegistrationOpen(),
+  ]);
+  const canManageInvites =
+    userHasRole(user, 'admin') || userHasRole(user, 'super_admin');
 
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {user.email}!
+      <span className="hidden text-muted-foreground sm:inline">
+        {user.email}
+      </span>
+      {canManageInvites ? (
+        <Button asChild size="sm" variant="outline">
+          <Link href="/admin/invites">Invites</Link>
+        </Button>
+      ) : null}
       <LogoutButton />
     </div>
   ) : (
@@ -21,9 +32,11 @@ export async function AuthButton() {
       <Button asChild size="sm" variant={'outline'}>
         <Link href="/auth/login">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant={'default'}>
-        <Link href="/auth/sign-up">Sign up</Link>
-      </Button>
+      {bootstrapOpen ? (
+        <Button asChild size="sm" variant={'default'}>
+          <Link href="/auth/sign-up">Create Admin</Link>
+        </Button>
+      ) : null}
     </div>
   );
 }
