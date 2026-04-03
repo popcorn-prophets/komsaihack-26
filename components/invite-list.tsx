@@ -15,6 +15,14 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const INITIAL_STATE: AuthActionState = {
   status: 'idle',
@@ -115,60 +123,60 @@ export function InviteList({ invites }: { invites: InviteRecord[] }) {
         </CardHeader>
         <CardContent>
           {invites.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-muted-foreground">
-                  <tr className="border-b">
-                    <th className="py-3 pr-4 font-medium">Email</th>
-                    <th className="py-3 pr-4 font-medium">Role</th>
-                    <th className="py-3 pr-4 font-medium">Status</th>
-                    <th className="py-3 pr-4 font-medium">Created</th>
-                    <th className="py-3 pr-4 font-medium">Expires</th>
-                    <th className="py-3 font-medium">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invites.map((invite) => (
-                    <tr key={invite.id} className="border-b align-top">
-                      <td className="py-3 pr-4">{invite.email}</td>
-                      <td className="py-3 pr-4">{invite.role}</td>
-                      <td className="py-3 pr-4">{getInviteStatus(invite)}</td>
-                      <td className="py-3 pr-4">
-                        {formatTimestamp(invite.created_at)}
-                      </td>
-                      <td className="py-3 pr-4">
-                        {invite.expires_at
-                          ? formatTimestamp(invite.expires_at)
-                          : 'No expiration'}
-                      </td>
-                      <td className="py-3">
-                        {canReissue(invite) ? (
-                          <form action={action}>
-                            <input
-                              type="hidden"
-                              name="inviteId"
-                              value={invite.id}
-                            />
-                            <Button
-                              type="submit"
-                              size="sm"
-                              variant="outline"
-                              disabled={pending}
-                            >
-                              Reissue
-                            </Button>
-                          </form>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            Unavailable
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="text-muted-foreground hover:bg-transparent">
+                  <TableHead className="pr-4">Email</TableHead>
+                  <TableHead className="pr-4">Role</TableHead>
+                  <TableHead className="pr-4">Status</TableHead>
+                  <TableHead className="pr-4">Created</TableHead>
+                  <TableHead className="pr-4">Expires</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invites.map((invite) => (
+                  <TableRow key={invite.id} className="align-top">
+                    <TableCell className="pr-4">{invite.email}</TableCell>
+                    <TableCell className="pr-4">{invite.role}</TableCell>
+                    <TableCell className="pr-4">
+                      {getInviteStatus(invite)}
+                    </TableCell>
+                    <TableCell className="pr-4">
+                      {formatTimestamp(invite.created_at)}
+                    </TableCell>
+                    <TableCell className="pr-4">
+                      {invite.expires_at
+                        ? formatTimestamp(invite.expires_at)
+                        : 'No expiration'}
+                    </TableCell>
+                    <TableCell>
+                      {canReissue(invite) ? (
+                        <form action={action}>
+                          <input
+                            type="hidden"
+                            name="inviteId"
+                            value={invite.id}
+                          />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            variant="outline"
+                            disabled={pending}
+                          >
+                            Reissue
+                          </Button>
+                        </form>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Unavailable
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
             <p className="text-sm text-muted-foreground">
               No invites have been created yet.
