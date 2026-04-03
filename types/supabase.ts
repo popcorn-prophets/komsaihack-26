@@ -359,6 +359,16 @@ export type Database = {
         Args: { target_email: string };
         Returns: undefined;
       };
+      set_staff_role: {
+        Args: {
+          target_role: Database['public']['Enums']['app_role'];
+          target_user_id: string;
+        };
+        Returns: {
+          role: Database['public']['Enums']['app_role'];
+          user_id: string;
+        }[];
+      };
     };
     Enums: {
       app_role: 'super_admin' | 'admin' | 'responder';
