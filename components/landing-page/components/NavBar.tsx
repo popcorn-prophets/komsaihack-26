@@ -1,8 +1,8 @@
 'use client';
 
 import Logo from '@/components/brand/logo';
-import { MegaMenu } from '@/components/landing/mega-menu';
-import { ModeToggle } from '@/components/mode-toggle';
+import { MegaMenu } from '@/components/maga-menu';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -24,7 +24,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useTheme } from '@/hooks/use-theme';
 import {
   ChevronDown,
   Github,
@@ -34,6 +33,7 @@ import {
   Sun,
   X,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -79,7 +79,7 @@ const smoothScrollTo = (targetId: string) => {
   }
 };
 
-export function LandingNavbar() {
+export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const { setTheme, theme } = useTheme();
@@ -136,7 +136,7 @@ export function LandingNavbar() {
 
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-2">
-          <ModeToggle variant="ghost" />
+          <ThemeSwitcher />
           <Button
             variant="ghost"
             size="icon"
