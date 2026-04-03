@@ -1,6 +1,8 @@
 'use client';
 
 import Logo from '@/components/brand/logo';
+import Wordmark from '@/components/brand/wordmark';
+import WordmarkLogo from '@/components/brand/wordmark-logo';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Button } from '@/components/ui/button';
 import {
@@ -52,14 +54,10 @@ export function Navbar({ authButton }: { authButton?: ReactNode }) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
-          <Link
-            href="https://shadcnstore.com"
-            className="flex items-center space-x-2 cursor-pointer"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Logo size={32} />
-            <span className="font-bold">ShadcnStore</span>
+          <Link href="/" className="font-semibold flex items-center">
+            <Logo className="block sm:hidden" />
+            <Wordmark className="hidden sm:block md:hidden" />
+            <WordmarkLogo className="hidden md:block" />
           </Link>
         </div>
 
