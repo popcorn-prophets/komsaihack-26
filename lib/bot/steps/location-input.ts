@@ -3,6 +3,10 @@ import type { Point } from '@/types/geo';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
+const renderCardPromise = import('../renderers/card-renderer').then(
+  (module) => module.renderCard
+);
+
 /**
  * Handler for location input steps.
  * Extracts location from raw message data (platform-specific).
@@ -80,8 +84,7 @@ export class LocationInputHandler extends BaseStepHandler {
   }
 
   async render(thread: BotThread, step: Step): Promise<void> {
-    // Import dynamically to avoid circular dependencies
-    const { renderCard } = await import('../renderers/card-renderer');
+    const renderCard = await renderCardPromise;
 
     const prompt = step.prompt || 'Please share your location';
 

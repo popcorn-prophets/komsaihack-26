@@ -2,6 +2,10 @@ import type { BotThread } from '@/lib/bot/types';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
+const renderSelectionCardPromise = import('../renderers/card-renderer').then(
+  (module) => module.renderSelectionCard
+);
+
 /**
  * Handler for selection steps (buttons/actions).
  * Parses action event values and validates against available options.
@@ -38,8 +42,7 @@ export class SelectionHandler extends BaseStepHandler {
   }
 
   async render(thread: BotThread, step: Step): Promise<void> {
-    // Import dynamically to avoid circular dependencies
-    const { renderSelectionCard } = await import('../renderers/card-renderer');
+    const renderSelectionCard = await renderSelectionCardPromise;
 
     const options = step.options || [];
 

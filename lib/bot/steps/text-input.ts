@@ -2,6 +2,10 @@ import type { BotThread } from '@/lib/bot/types';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
+const renderCardPromise = import('../renderers/card-renderer').then(
+  (module) => module.renderCard
+);
+
 /**
  * Handler for text input steps.
  * Parses message.text and validates with step validators.
@@ -30,8 +34,7 @@ export class TextInputHandler extends BaseStepHandler {
   }
 
   async render(thread: BotThread, step: Step): Promise<void> {
-    // Import dynamically to avoid circular dependencies
-    const { renderCard } = await import('../renderers/card-renderer');
+    const renderCard = await renderCardPromise;
 
     const prompt = step.prompt || 'Please provide input';
 
