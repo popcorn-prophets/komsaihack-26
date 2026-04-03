@@ -117,7 +117,7 @@ const [selected, setSelected] = useState("daily")
   {["daily", "weekly", "monthly"].map((option) => (
     <Button
       key={option}
-      variant={selected === option ? "default" : "outline"}
+      variant={selected === option ? "default" : "outline-solid"}
       onClick={() => setSelected(option)}
     >
       {option}
