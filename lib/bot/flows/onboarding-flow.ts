@@ -21,6 +21,9 @@ export const onboardingFlow: Flow = {
   id: 'onboarding',
   name: 'Resident Onboarding',
   startStep: 'language',
+  start: {
+    autoStartForUnregisteredResident: true,
+  },
 
   steps: [
     {

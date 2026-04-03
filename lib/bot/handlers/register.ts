@@ -9,6 +9,103 @@ import { createAdminClient } from '@/lib/supabase/admin';
  * Register message handlers for the bot.
  */
 export function registerMessageHandlers(bot: BotInstance) {
+  function normalizeText(input: unknown): string {
+    return typeof input === 'string' ? input.trim().toLowerCase() : '';
+  }
+
+  async function getResidentByThreadId(thread: BotThread): Promise<{
+    id: string;
+  } | null> {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+      .from('residents')
+      .select('id')
+      .eq('thread_id', thread.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Supabase error checking resident:', error);
+      throw new Error('An error occurred while checking your profile.');
+    }
+
+    return data;
+  }
+
+  function buildAvailableCommandHint(): string {
+    const commands = flowRegistry.getStartCommands();
+
+    if (commands.length === 0) {
+      return 'Send a supported command to begin.';
+    }
+
+    return `Send "${commands.join('", "')}" to begin.`;
+  }
+
+  async function startFlow(
+    thread: BotThread,
+    flow: Flow,
+    context: { hasResident: boolean },
+    visitedFlowIds: Set<string> = new Set()
+  ): Promise<boolean> {
+    if (visitedFlowIds.has(flow.id)) {
+      console.error(`Detected cyclic flow fallback while starting ${flow.id}`);
+      await thread.post('An error occurred. Please try again.');
+      return false;
+    }
+
+    visitedFlowIds.add(flow.id);
+
+    if (flow.start?.requiresResident && !context.hasResident) {
+      if (flow.start.missingResidentMessage) {
+        await thread.post(flow.start.missingResidentMessage);
+      }
+
+      const fallbackFlowId = flow.start.fallbackFlowId;
+      if (!fallbackFlowId) {
+        return false;
+      }
+
+      const fallbackFlow = flowRegistry.get(fallbackFlowId);
+      if (!fallbackFlow) {
+        console.error(`Fallback flow not registered: ${fallbackFlowId}`);
+        await thread.post('An error occurred. Please try again.');
+        return false;
+      }
+
+      return startFlow(thread, fallbackFlow, context, visitedFlowIds);
+    }
+
+    if (flow.onStart) {
+      await flow.onStart(thread);
+    }
+
+    const initialState: FlowThreadState = flowEngine.createInitialState(
+      flow.id
+    );
+    await thread.setState(initialState);
+    await flowEngine.renderCurrentStep(thread, flow, initialState);
+    return true;
+  }
+
+  async function handleFlowStartCommand(
+    thread: BotThread,
+    input: unknown,
+    context: { hasResident: boolean }
+  ): Promise<boolean> {
+    const command = normalizeText(input);
+    if (!command) {
+      return false;
+    }
+
+    const flow = flowRegistry.getByCommand(command);
+    if (!flow) {
+      return false;
+    }
+
+    return startFlow(thread, flow, context);
+  }
+
   async function resolveFlowContext(thread: BotThread): Promise<{
     state: FlowThreadState;
     flow: Flow;
@@ -108,40 +205,19 @@ export function registerMessageHandlers(bot: BotInstance) {
     await thread.subscribe();
 
     try {
-      const supabase = createAdminClient();
+      const resident = await getResidentByThreadId(thread);
+      const hasResident = Boolean(resident);
+      const autoStartFlow = hasResident
+        ? undefined
+        : flowRegistry.getAutoStartForUnregisteredResident();
 
-      // Check if resident already exists
-      const { data, error } = await supabase
-        .from('residents')
-        .select('id')
-        .eq('thread_id', thread.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Supabase error checking resident:', error);
-        await thread.post('An error occurred. Please try again.');
+      if (autoStartFlow) {
+        await startFlow(thread, autoStartFlow, { hasResident });
         return;
       }
 
-      if (data) {
-        // Resident already onboarded
-        await thread.post('Welcome back!');
-      } else {
-        // Start onboarding flow
-        const initialState: FlowThreadState =
-          flowEngine.createInitialState('onboarding');
-        await thread.setState(initialState);
-
-        // Render first step
-        const flow = flowRegistry.get('onboarding');
-        if (!flow) {
-          console.error('Onboarding flow not registered');
-          await thread.post('An error occurred. Please try again.');
-          return;
-        }
-
-        await flowEngine.renderCurrentStep(thread, flow, initialState);
-      }
+      await thread.post(hasResident ? 'Welcome back!' : 'Welcome!');
+      await thread.post(buildAvailableCommandHint());
     } catch (error) {
       console.error('Error in onNewMention handler:', error);
       await thread.post('An unexpected error occurred. Please try again.');
@@ -153,10 +229,41 @@ export function registerMessageHandlers(bot: BotInstance) {
    */
   bot.onSubscribedMessage(async (thread, message) => {
     try {
+      const userText = typeof message.text === 'string' ? message.text : '';
+
       // Allow user to stop the bot
-      if (message.text === 'stop') {
+      if (normalizeText(userText) === 'stop') {
         await thread.post('Goodbye!');
         await thread.unsubscribe();
+        return;
+      }
+
+      const resident = await getResidentByThreadId(thread as BotThread);
+      const hasResident = Boolean(resident);
+
+      if (
+        await handleFlowStartCommand(thread as BotThread, userText, {
+          hasResident,
+        })
+      ) {
+        return;
+      }
+
+      const state = (await thread.state) as FlowThreadState | null;
+
+      if (!state) {
+        await thread.post(buildAvailableCommandHint());
+        return;
+      }
+
+      const flow = flowRegistry.get(state.flowId);
+      if (!flow) {
+        await thread.post('An error occurred. Please try again.');
+        return;
+      }
+
+      if (flowEngine.isFlowComplete(flow, state)) {
+        await thread.post(buildAvailableCommandHint());
         return;
       }
 

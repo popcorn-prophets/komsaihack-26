@@ -4,6 +4,26 @@ import { BotThread } from '../types';
 export type FlowData = Record<string, unknown>;
 
 /**
+ * Optional start behavior metadata for flow discovery and guard handling.
+ */
+export interface FlowStartConfig {
+  /** Commands that should start this flow, e.g. "report" */
+  commands?: string[];
+
+  /** Automatically start this flow for users without a resident profile */
+  autoStartForUnregisteredResident?: boolean;
+
+  /** Whether the flow requires an existing resident profile */
+  requiresResident?: boolean;
+
+  /** Message shown when resident requirement is not met */
+  missingResidentMessage?: string;
+
+  /** Fallback flow to start when resident requirement is not met */
+  fallbackFlowId?: string;
+}
+
+/**
  * Represents the complete definition of a conversational flow.
  * Flows are composed of ordered steps and define entry/exit behavior.
  */
@@ -19,6 +39,15 @@ export interface Flow {
 
   /** ID of the first step */
   startStep: string;
+
+  /** Optional startup behavior metadata */
+  start?: FlowStartConfig;
+
+  /**
+   * Optional hook invoked before the flow is started.
+   * Useful for hydrating dynamic step options.
+   */
+  onStart?: (thread: BotThread) => Promise<void>;
 
   /**
    * Called when flow is completed successfully.
