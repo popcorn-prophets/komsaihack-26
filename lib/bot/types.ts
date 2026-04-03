@@ -1,4 +1,4 @@
 import { Thread } from 'chat';
-import { ThreadState } from './thread-state';
+import { FlowThreadState } from './flows/flow-types';
 
-export type BotThread = Thread<ThreadState | unknown, unknown>;
+export type BotThread = Thread<FlowThreadState | unknown, unknown>;
