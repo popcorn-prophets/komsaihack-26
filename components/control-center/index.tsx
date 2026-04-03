@@ -1,11 +1,12 @@
-'use client';
-
-import { useUser } from '@/hooks/useUser';
+import { createClient } from '@/lib/supabase/server';
 import Header from '../header';
 import { LogoutButton } from '../logout-button';
 
-export default function ControlCenter() {
-  const user = useUser();
+export default async function ControlCenter() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <main className="min-h-screen flex flex-col items-center">
