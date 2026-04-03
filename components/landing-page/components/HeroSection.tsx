@@ -11,20 +11,25 @@ const incidentTypes = [
   'Typhoon',
   'Landslide',
   'Vehicular Accident',
+  'Disaster',
 ];
 
 function useTypewriter(
   words: string[],
-  typingSpeed = 100,
-  deletingSpeed = 50,
-  pauseDuration = 2000
+  typingSpeed = 500,
+  deletingSpeed = 250,
+  pauseDuration = 1000
 ) {
   const [displayText, setDisplayText] = useState('');
   const [wordIndex, setWordIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
+    if (isLocked) return;
+
     const currentWord = words[wordIndex];
+    const isLastWord = wordIndex === words.length - 1;
 
     const timeout = setTimeout(
       () => {
@@ -32,14 +37,18 @@ function useTypewriter(
           if (displayText.length < currentWord.length) {
             setDisplayText(currentWord.slice(0, displayText.length + 1));
           } else {
-            setTimeout(() => setIsDeleting(true), pauseDuration);
+            if (isLastWord) {
+              setIsLocked(true);
+            } else {
+              setTimeout(() => setIsDeleting(true), pauseDuration);
+            }
           }
         } else {
           if (displayText.length > 0) {
             setDisplayText(displayText.slice(0, -1));
           } else {
             setIsDeleting(false);
-            setWordIndex((prev) => (prev + 1) % words.length);
+            setWordIndex((prev) => prev + 1);
           }
         }
       },
@@ -55,13 +64,15 @@ function useTypewriter(
     typingSpeed,
     deletingSpeed,
     pauseDuration,
+    isLocked,
   ]);
 
-  return displayText;
+  return { displayText, isLocked };
 }
 
 export function NewHeroSection() {
-  const typedText = useTypewriter(incidentTypes, 80, 40, 1500);
+  const { displayText, isLocked } = useTypewriter(incidentTypes, 80, 40, 1500);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 w-full min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-20 mt-[-81px]">
       <style>{`
@@ -87,23 +98,53 @@ export function NewHeroSection() {
           background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, hsl(var(--background)) 100%);
           pointer-events: none;
         }
+
+        @keyframes blink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        .typewriter-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 0.8em;
+          background: currentColor;
+          margin-left: 3px;
+          vertical-align: middle;
+          border-radius: 1px;
+          animation: blink 0.9s step-end infinite;
+          position: relative;
+          top: -1px;
+        }
+        .typewriter-cursor.locked {
+          opacity: 0;
+          animation: none;
+        }
       `}</style>
 
       <div className="hero-grid absolute inset-0" />
 
-      {/* This div is purely for max-width capping — centering is done by the flex on the section */}
       <div className="relative z-10 w-full max-w-4xl text-center px-4">
-        <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
-          Transform Your Business
+        <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl leading-tight">
+          {/* Line 1 */}
+          One Platform.
           <br />
-          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            {typedText}
+          {/* Line 2 — typewriter line */}
+          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent inline-flex items-center justify-center">
+            {displayText}
+            <span
+              className={`typewriter-cursor${isLocked ? ' locked' : ''}`}
+              style={{ background: 'hsl(var(--primary))' }}
+            />
           </span>
+          <br />
+          {/* Line 3 */}
+          Response.
         </h1>
 
         <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-          We help businesses grow faster with cutting-edge solutions and
-          exceptional service. Join thousands of satisfied customers.
+          HERMES unifies disaster reporting, real-time coordination, and
+          resource dispatching into a single AI-powered command center — so
+          responders act faster when every second counts.
         </p>
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
