@@ -23,10 +23,15 @@ import {
 } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 
-export function NavUser({ user }: { user: User }) {
+export function NavUser({
+  user,
+}: {
+  user: {
+    email: string | null;
+  };
+}) {
   const router = useRouter();
   const isMobile = useIsMobile();
 

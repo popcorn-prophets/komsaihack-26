@@ -49,3 +49,21 @@ export type InviteRecord = {
   accepted_at: string | null;
   revoked_at: string | null;
 };
+
+export type ManagedUserStatus = 'active' | 'deactivated';
+
+export type ManagedStaffUser = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  roles: AppRole[];
+  primaryRole: AppRole;
+  status: ManagedUserStatus;
+  createdAt: string;
+  lastSignInAt: string | null;
+  invitedAt: string | null;
+  emailConfirmedAt: string | null;
+  bannedUntil: string | null;
+  userMetadata: Record<string, unknown>;
+  appMetadata: Record<string, unknown>;
+};

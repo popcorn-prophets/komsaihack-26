@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { reissueAccountInviteAction } from '@/lib/auth/invite-actions';
 import type { AuthActionState, InviteRecord } from '@/lib/auth/types';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,8 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -64,6 +65,18 @@ function canReissue(invite: InviteRecord) {
   return invite.accepted_at === null;
 }
 
+function formatAppRole(role: InviteRecord['role']) {
+  if (role === 'admin') {
+    return 'Admin';
+  }
+
+  if (role === 'super_admin') {
+    return 'Super Admin';
+  }
+
+  return 'Responder';
+}
+
 export function InviteList({ invites }: { invites: InviteRecord[] }) {
   const [state, action, pending] = useActionState(
     reissueAccountInviteAction,
@@ -92,14 +105,18 @@ export function InviteList({ invites }: { invites: InviteRecord[] }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="reissued-invite-link">Secure invite link</Label>
-              <Input
-                id="reissued-invite-link"
-                value={state.inviteUrl}
-                readOnly
-              />
-            </div>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="reissued-invite-link">
+                  Secure invite link
+                </FieldLabel>
+                <Input
+                  id="reissued-invite-link"
+                  value={state.inviteUrl}
+                  readOnly
+                />
+              </Field>
+            </FieldGroup>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="outline">
                 <a href={state.inviteUrl}>Open invite</a>
@@ -138,9 +155,15 @@ export function InviteList({ invites }: { invites: InviteRecord[] }) {
                 {invites.map((invite) => (
                   <TableRow key={invite.id} className="align-top">
                     <TableCell className="pr-4">{invite.email}</TableCell>
-                    <TableCell className="pr-4">{invite.role}</TableCell>
                     <TableCell className="pr-4">
-                      {getInviteStatus(invite)}
+                      <Badge variant="outline">
+                        {formatAppRole(invite.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="pr-4">
+                      <Badge variant="secondary">
+                        {getInviteStatus(invite)}
+                      </Badge>
                     </TableCell>
                     <TableCell className="pr-4">
                       {formatTimestamp(invite.created_at)}

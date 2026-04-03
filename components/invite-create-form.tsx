@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 
 import { createAccountInviteAction } from '@/lib/auth/invite-actions';
 import type { AppRole, AuthActionState } from '@/lib/auth/types';
@@ -13,8 +13,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const INITIAL_STATE: AuthActionState = {
   status: 'idle',
@@ -46,10 +60,15 @@ export function InviteCreateForm({
   allowedRoles: AppRole[];
   className?: string;
 }) {
+  const [selectedRole, setSelectedRole] = useState<AppRole>(allowedRoles[0]);
   const [state, action, pending] = useActionState(
     createAccountInviteAction,
     INITIAL_STATE
   );
+
+  useEffect(() => {
+    setSelectedRole(allowedRoles[0]);
+  }, [allowedRoles]);
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -62,61 +81,88 @@ export function InviteCreateForm({
         </CardHeader>
         <CardContent>
           <form action={action} className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="invite-email">Email</Label>
-              <Input
-                id="invite-email"
-                name="email"
-                type="email"
-                placeholder="responder@example.com"
-                required
-              />
-              {fieldError(state, 'email') ? (
-                <p className="text-sm text-red-500">
-                  {fieldError(state, 'email')}
-                </p>
-              ) : null}
-            </div>
+            <input type="hidden" name="role" value={selectedRole} />
 
-            <div className="grid gap-2">
-              <Label htmlFor="invite-role">Role</Label>
-              <select
-                id="invite-role"
-                name="role"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                defaultValue={allowedRoles[0]}
+            <FieldGroup>
+              <Field
+                data-invalid={Boolean(fieldError(state, 'email')) || undefined}
               >
-                {allowedRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {prettyRole(role)}
-                  </option>
-                ))}
-              </select>
-              {fieldError(state, 'role') ? (
-                <p className="text-sm text-red-500">
-                  {fieldError(state, 'role')}
-                </p>
-              ) : null}
-            </div>
+                <FieldLabel htmlFor="invite-email">Email</FieldLabel>
+                <Input
+                  id="invite-email"
+                  name="email"
+                  type="email"
+                  placeholder="responder@example.com"
+                  required
+                  aria-invalid={
+                    Boolean(fieldError(state, 'email')) || undefined
+                  }
+                />
+                <FieldDescription>
+                  Invite links are single-use and bound to this email address.
+                </FieldDescription>
+                <FieldError>{fieldError(state, 'email')}</FieldError>
+              </Field>
 
-            <div className="grid gap-2">
-              <Label htmlFor="invite-expiration">
-                Expiration (days, optional)
-              </Label>
-              <Input
-                id="invite-expiration"
-                name="expiresInDays"
-                type="number"
-                min={1}
-                max={30}
-                placeholder="7"
-              />
-              {fieldError(state, 'expiresInDays') ? (
-                <p className="text-sm text-red-500">
-                  {fieldError(state, 'expiresInDays')}
-                </p>
-              ) : null}
-            </div>
+              <Field
+                data-invalid={Boolean(fieldError(state, 'role')) || undefined}
+              >
+                <FieldLabel htmlFor="invite-role">Role</FieldLabel>
+                <Select
+                  value={selectedRole}
+                  onValueChange={(value) => setSelectedRole(value as AppRole)}
+                >
+                  <SelectTrigger
+                    id="invite-role"
+                    aria-invalid={
+                      Boolean(fieldError(state, 'role')) || undefined
+                    }
+                  >
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {allowedRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {prettyRole(role)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  Responders can manage incidents. Admins can also access this
+                  panel.
+                </FieldDescription>
+                <FieldError>{fieldError(state, 'role')}</FieldError>
+              </Field>
+
+              <Field
+                data-invalid={
+                  Boolean(fieldError(state, 'expiresInDays')) || undefined
+                }
+              >
+                <FieldLabel htmlFor="invite-expiration">
+                  Expiration (days, optional)
+                </FieldLabel>
+                <Input
+                  id="invite-expiration"
+                  name="expiresInDays"
+                  type="number"
+                  min={1}
+                  max={30}
+                  placeholder="7"
+                  aria-invalid={
+                    Boolean(fieldError(state, 'expiresInDays')) || undefined
+                  }
+                />
+                <FieldDescription>
+                  Leave blank to keep the invite valid until it is accepted or
+                  revoked.
+                </FieldDescription>
+                <FieldError>{fieldError(state, 'expiresInDays')}</FieldError>
+              </Field>
+            </FieldGroup>
 
             {state.message ? (
               <p
@@ -147,10 +193,14 @@ export function InviteCreateForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="invite-link">Secure invite link</Label>
-              <Input id="invite-link" value={state.inviteUrl} readOnly />
-            </div>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="invite-link">
+                  Secure invite link
+                </FieldLabel>
+                <Input id="invite-link" value={state.inviteUrl} readOnly />
+              </Field>
+            </FieldGroup>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="outline">
                 <a href={state.inviteUrl}>Open invite</a>

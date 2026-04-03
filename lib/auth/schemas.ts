@@ -59,6 +59,16 @@ export const reissueInviteSchema = z.object({
   inviteId: z.string().uuid('Invite id is invalid.'),
 });
 
+export const changeManagedUserRoleSchema = z.object({
+  userId: z.string().uuid('User id is invalid.'),
+  role: z.enum(['admin', 'responder']),
+});
+
+export const setManagedUserActivationSchema = z.object({
+  userId: z.string().uuid('User id is invalid.'),
+  nextStatus: z.enum(['activate', 'deactivate']),
+});
+
 export const acceptInviteSchema = z
   .object({
     token: z.string().trim().min(1, 'Invite token is required.'),
