@@ -2,7 +2,14 @@ import type { BotThread } from '@/lib/bot/types';
 import { pointToString } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/types/supabase';
-import { compose, maxLength, minLength, required } from '../steps/validators';
+import {
+  compose,
+  isGeometryPoint,
+  isOneOf,
+  maxLength,
+  minLength,
+  required,
+} from '../steps/validators';
 import type { Flow } from './flow-types';
 
 type ResidentLanguage = Database['public']['Enums']['resident_language'];
@@ -24,6 +31,7 @@ export const onboardingFlow: Flow = {
         { label: 'English', value: 'eng' },
         { label: 'Filipino (Tagalog)', value: 'fil' },
       ],
+      validations: [isOneOf(['eng', 'fil'])],
       dataKey: 'language',
     },
     {
@@ -37,6 +45,7 @@ export const onboardingFlow: Flow = {
       id: 'location',
       type: 'location',
       prompt: 'Where do you reside?',
+      validations: [isGeometryPoint],
       dataKey: 'location',
     },
     {
@@ -72,10 +81,6 @@ export const onboardingFlow: Flow = {
       if (typeof name !== 'string') {
         throw new Error('Invalid name format.');
       }
-      if (language !== 'eng' && language !== 'fil') {
-        throw new Error('Invalid language selection.');
-      }
-
       if (!location || typeof location !== 'object') {
         throw new Error('Invalid location format.');
       }
@@ -96,14 +101,11 @@ export const onboardingFlow: Flow = {
       };
 
       const supabase = createAdminClient();
-      const threadWithAuthor = thread as unknown as {
-        author?: { userId?: string };
-      };
 
       // Insert resident
       const { error } = await supabase.from('residents').insert({
         platform: thread.adapter.name as 'telegram' | 'messenger',
-        platform_user_id: threadWithAuthor.author?.userId || thread.id,
+        platform_user_id: thread.id,
         thread_id: thread.id,
         name,
         language: language as ResidentLanguage,
