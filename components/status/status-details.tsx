@@ -1,10 +1,5 @@
 import { getLivenessPayload, getReadinessResult } from '@/lib/health';
 
-/**
- * Async Server Component: request-time health data without `"use cache"`.
- * Wrapped in `<Suspense>` on the page per Cache Components + streaming guidance.
- * @see https://nextjs.org/docs/app/getting-started/caching
- */
 export async function StatusDetails() {
   const [liveness, readiness] = await Promise.all([
     getLivenessPayload(),

@@ -1,12 +1,7 @@
-import { AuthButton } from '@/components/auth-button';
-import Logo from '@/components/brand/logo';
-import Wordmark from '@/components/brand/wordmark';
-import WordmarkLogo from '@/components/brand/wordmark-logo';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Suspense } from 'react';
+import Header from '@/components/header';
 import { StatusDetails } from '@/components/status/status-details';
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Status — Project HERMES',
@@ -21,31 +16,11 @@ export const metadata: Metadata = {
  */
 export default function StatusPage() {
   return (
-    <main className="min-h-svh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10">
-        <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-          <Link href="/" className="font-semibold flex items-center">
-            <Logo className="block sm:hidden" />
-            <Wordmark className="hidden sm:block md:hidden" />
-            <WordmarkLogo className="hidden md:block" />
-          </Link>
-          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
-            <Link
-              href="/"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Home
-            </Link>
-            <Suspense>
-              <AuthButton />
-            </Suspense>
-            <ThemeSwitcher />
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-svh bg-background">
+      <Header />
 
       <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-10">
-        <h1 className="text-2xl font-bold tracking-tight">System status</h1>
+        <h1 className="text-2xl font-bold tracking-tight">System Status</h1>
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           This page runs checks on each load. For automation, use the JSON
           endpoints{' '}
