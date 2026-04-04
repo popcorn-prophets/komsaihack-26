@@ -35,8 +35,8 @@ export function ChallengesSection() {
       {/* Seamless top fade */}
       <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-background via-background/60 to-transparent z-10 pointer-events-none" />
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/20" />
-      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20">
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/20 [mask-image:linear-gradient(to_bottom,transparent,black_150px)]" />
+      <div className="w-full pt-20 px-4 sm:px-6 lg:px-8 relative z-20">
         {/* Header */}
         <div className="mb-10 text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
