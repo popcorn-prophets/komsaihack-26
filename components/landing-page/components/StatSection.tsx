@@ -38,17 +38,38 @@ const disasterFacts = [
 
 export function StatSection() {
   return (
-    <section className="relative py-20 md:py-32 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
-      </div>
+    <section className="relative -mt-32 w-full overflow-hidden">
+      <style>{`
+        .stat-grid::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
+          background-size: 40px 40px;
+          background-position: top center;
+        }
+        .dark .stat-grid::before {
+          background-image:
+            linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px);
+        }
+        .stat-grid::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, hsl(var(--background)) 100%);
+          pointer-events: none;
+        }
+      `}</style>
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Stats Cards - Left Side */}
-          <div className="grid sm:grid-cols-2 gap-4 md:gap-6 order-2 lg:order-1">
+      <div className="stat-grid absolute inset-0" />
+
+      <div className="relative z-10 w-full px-6 lg:px-8 py-16 md:py-24">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 max-w-7xl mx-auto">
+          {/* LEFT: 2x2 Stats Cards Grid */}
+          <div className="w-full lg:w-1/2 grid grid-cols-2 gap-4 md:gap-6">
             {disasterFacts.map((fact, index) => (
               <div
                 key={index}
@@ -72,28 +93,23 @@ export function StatSection() {
             ))}
           </div>
 
-          {/* Philippine Map - Right Side */}
-          <div className="relative flex items-center justify-center order-1 lg:order-2">
-            <div className="relative">
-              {/* Glow effect */}
+          {/* RIGHT: Philippine Map — hidden on mobile */}
+          <div className="hidden lg:flex w-full lg:w-1/2 items-center justify-center">
+            <div className="relative flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.03] via-foreground/[0.08] to-foreground/[0.03] blur-3xl scale-150" />
-
-              {/* Light mode map (black) */}
               <Image
                 src={PhilippinesBlack}
                 alt="Map of the Philippines"
                 width={550}
                 height={825}
-                className="relative block dark:hidden drop-shadow-[0_0_50px_rgba(0,0,0,0.2)] w-[350px] h-auto md:w-[450px] lg:w-[550px]"
+                className="relative block dark:hidden drop-shadow-[0_0_50px_rgba(0,0,0,0.2)] w-[280px] h-auto md:w-[380px] lg:w-[460px]"
               />
-
-              {/* Dark mode map (white) */}
               <Image
                 src={PhilippinesWhite}
                 alt="Map of the Philippines"
                 width={550}
                 height={825}
-                className="relative hidden dark:block drop-shadow-[0_0_50px_rgba(255,255,255,0.25)] w-[350px] h-auto md:w-[450px] lg:w-[550px]"
+                className="relative hidden dark:block drop-shadow-[0_0_50px_rgba(255,255,255,0.25)] w-[280px] h-auto md:w-[380px] lg:w-[460px]"
               />
             </div>
           </div>
