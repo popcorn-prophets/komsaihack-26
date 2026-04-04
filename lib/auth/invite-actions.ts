@@ -101,7 +101,7 @@ export async function createAccountInviteAction(
     );
   }
 
-  revalidatePath('/admin/invites');
+  revalidatePath('/control-center/admin-panel');
 
   return {
     status: 'success',
@@ -208,7 +208,7 @@ export async function reissueAccountInviteAction(
       throw insertError;
     }
 
-    revalidatePath('/admin/invites');
+    revalidatePath('/control-center/admin-panel');
 
     return {
       status: 'success',
@@ -318,7 +318,7 @@ export async function acceptAccountInviteAction(
       throw new Error('Invite completion failed.');
     }
 
-    revalidatePath('/admin/invites');
+    revalidatePath('/control-center/admin-panel');
     revalidatePath('/auth/login');
   } catch (error) {
     unstable_rethrow(error);

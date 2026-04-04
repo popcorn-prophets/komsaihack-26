@@ -50,6 +50,17 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+@theme inline {
+  --color-sidebar: var(--color-background);
+  --color-sidebar-foreground: var(--color-card-foreground);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-primary-foreground);
+  --color-sidebar-accent: var(--color-accent);
+  --color-sidebar-accent-foreground: var(--color-accent-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-ring);
+}
+
 @layer base {
   *,
   ::after,
@@ -125,13 +136,20 @@
   }
 }
 
-@theme inline {
-  --color-sidebar: var(--color-background);
-  --color-sidebar-foreground: var(--color-card-foreground);
-  --color-sidebar-primary: var(--color-primary);
-  --color-sidebar-primary-foreground: var(--color-primary-foreground);
-  --color-sidebar-accent: var(--color-accent);
-  --color-sidebar-accent-foreground: var(--color-accent-foreground);
-  --color-sidebar-border: var(--color-border);
-  --color-sidebar-ring: var(--color-ring);
+@layer components {
+  .legal-doc section {
+    @apply space-y-3;
+  }
+  .legal-doc h2 {
+    @apply text-base font-semibold tracking-tight text-foreground;
+  }
+  .legal-doc h3 {
+    @apply text-sm font-semibold text-foreground;
+  }
+  .legal-doc ul {
+    @apply list-disc space-y-1 pl-5;
+  }
+  .legal-doc a {
+    @apply font-medium text-foreground underline underline-offset-4 hover:text-foreground/80;
+  }
 }
