@@ -34,9 +34,11 @@ export function IncidentTabs({ defaultTab = 'reports' }: TabsProps) {
       label: 'Kanban Board',
       content: (
         <div className="p-4 flex flex-row flex-1 w-full gap-4">
-          <KanbanContent title="Open" />
+          <KanbanContent title="New" />
+          <KanbanContent title="Validated" />
           <KanbanContent title="In Progress" />
           <KanbanContent title="Resolved" />
+          <KanbanContent title="Dismissed" />
         </div>
       ),
     },

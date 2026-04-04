@@ -15,7 +15,7 @@ export default function IncidentsCard() {
       <CardHeader className="border-b">
         <CardTitle>Reports</CardTitle>
       </CardHeader>
-      <CardContent className="max-h-[calc(100vh-350px)]">
+      <CardContent className="h-[calc(100vh-350px)]">
         <IncidentList />
       </CardContent>
       <CardFooter>

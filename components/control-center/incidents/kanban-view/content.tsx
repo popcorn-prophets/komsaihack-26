@@ -22,12 +22,12 @@ function getIncidentData(count: number = 50) {
   return entries;
 }
 
-const KanbanContent: React.FC<KanbanContentProps> = ({
+function KanbanContent({
   title,
   incidentCount = 50,
   onIncidentSelect,
   className = '',
-}) => {
+}: KanbanContentProps) {
   const [selectedIncident, setSelectedIncident] = useState<string | null>(null);
 
   const handleIncidentClick = (id: string) => {
@@ -57,6 +57,6 @@ const KanbanContent: React.FC<KanbanContentProps> = ({
       </ScrollArea>
     </CategoryCard>
   );
-};
+}
 
 export default KanbanContent;

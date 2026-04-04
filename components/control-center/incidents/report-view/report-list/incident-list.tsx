@@ -2,28 +2,45 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { fetchIncidents, type Incident } from '@/lib/supabase/reports';
 import * as React from 'react';
-import IncidentButton from './incident-entry';
+import IncidentEntry from './incident-entry';
 
-function getReportData() {
-  // TODO: replace function to fetch content from database
-  const entry = [];
-  for (let i: number = 0; i < 50; i++) {
-    // replace id with the report string
-    entry.push(<IncidentButton id={i.toString()} />);
+async function getReportData(count: number = 50): Promise<Incident[] | null> {
+  const incidents = await fetchIncidents(count);
+
+  if (incidents) return incidents;
+  else {
+    console.error('No Data found');
+    return null;
   }
-
-  return entry;
 }
 
 export function IncidentList() {
+  const [incidents, setIncidents] = React.useState<Incident[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadIncidents = async () => {
+      setLoading(true);
+      const data = await getReportData();
+      if (data) {
+        setIncidents(data);
+      }
+      setLoading(false);
+    };
+
+    loadIncidents();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
   return (
-    // NOTE: refactor max-h to use relative measurements. might cause bugs in current state
     <ScrollArea className={`h-full w-full rounded-md`}>
       <div className="p-4">
-        {getReportData().map((entry) => (
-          <React.Fragment key={entry.props.id}>
-            <div className="text-sm">{entry}</div>
+        {incidents.map((incident) => (
+          <React.Fragment key={incident.id}>
+            <IncidentEntry id={incident.incident_time} />
             <Separator className="my-2" />
           </React.Fragment>
         ))}
