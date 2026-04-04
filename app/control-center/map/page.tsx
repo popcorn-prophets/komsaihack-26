@@ -1,20 +1,16 @@
 import {
-  Map,
-  MapControls,
-  MapMarker,
-  MarkerContent,
-  MarkerTooltip,
-} from '@/components/control-center/map/map';
-import { Card } from '@/components/ui/card';
+  IncidentMarker,
+  InteractiveMap,
+} from '@/components/control-center/map/interactive-map';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Tables } from '@/types/supabase';
 
-type IncidentMarker = {
-  id: string;
-  longitude: number;
-  latitude: number;
-  label?: string | null;
+const MIAGAO_MDRRMO_DESTINATION = {
+  id: 'miagao-mdrrmo-office',
+  longitude: 122.23505,
+  latitude: 10.64078,
+  label: 'MDRRMO Office, Miagao',
 };
 
 type IncidentMapRow = Pick<
@@ -55,7 +51,7 @@ export default async function Page() {
     console.error('Failed to load incidents for map:', error);
   }
 
-  const markers: IncidentMarker[] = (data ?? []).flatMap((incident) => {
+  const dbMarkers: IncidentMarker[] = (data ?? []).flatMap((incident) => {
     const longitude =
       typeof incident.longitude === 'number' ? incident.longitude : null;
     const latitude =
@@ -69,27 +65,11 @@ export default async function Page() {
 
     return [{ id: incident.id, longitude, latitude, label }];
   });
-  const mapCenter: [number, number] = markers.length
-    ? [markers[0].longitude, markers[0].latitude]
-    : [121.0533, 14.6512];
 
   return (
-    <Card className="h-[320px] p-0 overflow-hidden">
-      <Map center={mapCenter} zoom={markers.length ? 12 : 11}>
-        {markers.map((marker) => (
-          <MapMarker
-            key={marker.id}
-            longitude={marker.longitude}
-            latitude={marker.latitude}
-          >
-            <MarkerContent />
-            {marker.label ? (
-              <MarkerTooltip>{marker.label}</MarkerTooltip>
-            ) : null}
-          </MapMarker>
-        ))}
-        <MapControls />
-      </Map>
-    </Card>
+    <InteractiveMap
+      markers={dbMarkers}
+      destination={MIAGAO_MDRRMO_DESTINATION}
+    />
   );
 }
