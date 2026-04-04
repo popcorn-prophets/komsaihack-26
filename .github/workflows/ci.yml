@@ -51,9 +51,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_WEBHOOK_SECRET_TOKEN: ${{ secrets.TELEGRAM_WEBHOOK_SECRET_TOKEN }}
-          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          # Forked PRs do not receive repository secrets, so fall back to safe
+          # placeholders instead of leaving the env vars empty.
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || 'mock-telegram-bot-token' }}
+          TELEGRAM_WEBHOOK_SECRET_TOKEN: ${{ secrets.TELEGRAM_WEBHOOK_SECRET_TOKEN || 'mock-webhook-secret-token' }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME || 'project_hermes_bot' }}
 
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY || 'mock-google-api-key' }}
         run: pnpm run ci
