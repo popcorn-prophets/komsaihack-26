@@ -1,6 +1,7 @@
 import { isBootstrapRegistrationOpen } from '@/lib/auth/dal';
 import { LoginForm } from '@/components/login-form';
 import { connection } from 'next/server';
+import { redirect } from 'next/navigation';
 
 function getNoticeMessage(notice: string | undefined) {
   switch (notice) {
@@ -24,6 +25,10 @@ export default async function Page({
     searchParams,
     isBootstrapRegistrationOpen(),
   ]);
+
+  if (bootstrapOpen) {
+    redirect('/auth/sign-up');
+  }
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">

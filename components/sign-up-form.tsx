@@ -1,8 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { createBootstrapAdminAction } from '@/lib/auth/bootstrap-actions';
-import type { AuthActionState } from '@/lib/auth/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,7 +10,9 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
+import { createBootstrapAdminAction } from '@/lib/auth/bootstrap-actions';
+import type { AuthActionState } from '@/lib/auth/types';
+import { cn } from '@/lib/utils';
 import { useActionState } from 'react';
 
 const INITIAL_STATE: AuthActionState = {
@@ -119,12 +118,6 @@ export function SignUpForm({
               <Button type="submit" className="w-full" disabled={pending}>
                 {pending ? 'Creating admin account...' : 'Create admin account'}
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
             </div>
           </form>
         </CardContent>
