@@ -34,6 +34,15 @@ export interface Step {
   /** Display text for the step prompt */
   prompt?: string;
 
+  /** Optional display content/body for the step */
+  content?: string;
+
+  /** Build prompt from collected flow data at render time */
+  renderPrompt?: (data: FlowData) => string | undefined;
+
+  /** Build content/body from collected flow data at render time */
+  renderContent?: (data: FlowData) => string | undefined;
+
   /** For selection steps, the available options */
   options?: SelectionOption[];
 
@@ -48,6 +57,15 @@ export interface Step {
 
   /** Optional field key to store value under (defaults to step.id) */
   dataKey?: string;
+
+  /**
+   * Optional async hook invoked after successful parse.
+   * Returned patch is merged into collected flow data.
+   */
+  onAfterParse?: (
+    value: unknown,
+    data: FlowData
+  ) => Promise<Partial<FlowData> | void>;
 }
 
 /**

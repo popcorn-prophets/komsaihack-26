@@ -4,6 +4,7 @@ import type { Flow } from './flow-types';
 import { parseFreeformIncidentReport } from './incident-ai-parser';
 import {
   fetchIncidentTypeNames,
+  isIncidentSeverity,
   submitIncidentReport,
 } from './incident-reporting-service';
 
@@ -31,34 +32,106 @@ export const incidentReportingFreeformFlow: Flow = {
         'Describe the incident in one message. Include what happened, where it happened, and how urgent it is.',
       validations: [required, compose(minLength(15), maxLength(3000))],
       dataKey: 'freeformReportText',
+      onAfterParse: async (value) => {
+        if (typeof value !== 'string') {
+          throw new Error('Invalid report format. Please try again.');
+        }
+
+        const incidentTypeNames = await fetchIncidentTypeNames();
+        const parsed = await parseFreeformIncidentReport({
+          userInput: value,
+          allowedIncidentTypeNames: incidentTypeNames,
+        });
+
+        return {
+          parsedIncidentTypeName: parsed.incidentTypeName,
+          parsedSeverity: parsed.severity,
+          parsedDescription: parsed.description,
+          parsedLocationDescription: parsed.locationDescription,
+        };
+      },
     },
     {
-      id: 'confirm',
-      type: 'confirmation',
-      prompt: 'Analyzing your report and submitting...',
+      id: 'review_submission',
+      type: 'selection',
+      prompt: 'Please review your report before submission.',
+      renderContent: (data) => {
+        const incidentType =
+          typeof data.parsedIncidentTypeName === 'string'
+            ? data.parsedIncidentTypeName
+            : 'Unknown';
+        const severity =
+          typeof data.parsedSeverity === 'string'
+            ? data.parsedSeverity
+            : 'Unknown';
+        const description =
+          typeof data.parsedDescription === 'string'
+            ? data.parsedDescription
+            : 'Not provided';
+        const locationDescription =
+          typeof data.parsedLocationDescription === 'string'
+            ? data.parsedLocationDescription
+            : 'Not provided';
+
+        return [
+          `Incident Type: ${incidentType}`,
+          `Severity: ${severity}`,
+          `Description: ${description}`,
+          `Location: ${locationDescription}`,
+          '',
+          'Submit this report?',
+        ].join('\n');
+      },
+      options: [
+        { label: 'Confirm and Submit', value: 'confirm' },
+        { label: 'Cancel', value: 'cancel' },
+      ],
+      validations: [required],
+      dataKey: 'submissionDecision',
     },
   ],
 
   onComplete: async (data, thread: BotThread) => {
     try {
-      const freeformReportText = data.freeformReportText;
-      if (typeof freeformReportText !== 'string') {
-        throw new Error('Invalid report format. Please try again.');
+      const submissionDecision = data.submissionDecision;
+      if (submissionDecision !== 'confirm') {
+        const { renderCard } = await import('../renderers/card-renderer');
+        await renderCard(thread, {
+          title: 'Cancelled',
+          content:
+            'Incident reporting has been cancelled. Send "report" anytime to start again.',
+        });
+        return;
       }
 
-      const incidentTypeNames = await fetchIncidentTypeNames();
+      const incidentTypeName = data.parsedIncidentTypeName;
+      const severity = data.parsedSeverity;
+      const description = data.parsedDescription;
+      const locationDescription = data.parsedLocationDescription;
 
-      const parsed = await parseFreeformIncidentReport({
-        userInput: freeformReportText,
-        allowedIncidentTypeNames: incidentTypeNames,
-      });
+      if (
+        typeof incidentTypeName !== 'string' ||
+        typeof severity !== 'string' ||
+        typeof description !== 'string' ||
+        typeof locationDescription !== 'string'
+      ) {
+        throw new Error(
+          'Parsed report details are incomplete. Please try again.'
+        );
+      }
+
+      if (!isIncidentSeverity(severity)) {
+        throw new Error(
+          'Unable to determine incident severity. Please try again.'
+        );
+      }
 
       await submitIncidentReport({
         thread,
-        incidentTypeName: parsed.incidentTypeName,
-        severity: parsed.severity,
-        description: parsed.description,
-        locationDescription: parsed.locationDescription,
+        incidentTypeName,
+        severity,
+        description,
+        locationDescription,
       });
 
       const { renderCard } = await import('../renderers/card-renderer');

@@ -15,6 +15,17 @@ import type { Flow, FlowThreadState } from './flow-types';
  * - Call step-specific handlers for input parsing and UI rendering
  */
 class FlowEngine {
+  private resolveStepForRender(step: Step, state: FlowThreadState): Step {
+    const resolvedPrompt = step.renderPrompt?.(state.data) ?? step.prompt;
+    const resolvedContent = step.renderContent?.(state.data) ?? step.content;
+
+    return {
+      ...step,
+      prompt: resolvedPrompt,
+      content: resolvedContent,
+    };
+  }
+
   /**
    * Load a flow from the registry.
    */
@@ -60,9 +71,10 @@ class FlowEngine {
     }
 
     const step = this.getCurrentStep(flow, state);
-    const handler = stepHandlerRegistry.get(step.type);
+    const renderedStep = this.resolveStepForRender(step, state);
+    const handler = stepHandlerRegistry.get(renderedStep.type);
 
-    await handler.render(thread, step);
+    await handler.render(thread, renderedStep);
   }
 
   /**
@@ -100,10 +112,23 @@ class FlowEngine {
 
     // Parse succeeded - store value and determine next step
     const dataKey = currentStep.dataKey || currentStep.id;
-    const updatedData = {
+    let updatedData = {
       ...state.data,
       [dataKey]: parseResult.value,
     };
+
+    if (currentStep.onAfterParse) {
+      const patch = await currentStep.onAfterParse(
+        parseResult.value,
+        updatedData
+      );
+      if (patch) {
+        updatedData = {
+          ...updatedData,
+          ...patch,
+        };
+      }
+    }
 
     // Determine next step
     let nextStepIndex = state.stepIndex + 1;
