@@ -37,6 +37,9 @@ export interface Step {
   /** Optional display content/body for the step */
   content?: string;
 
+  /** Allow image attachments to satisfy a text step, enabling multimodal input. */
+  allowImageAttachments?: boolean;
+
   /** Build prompt from collected flow data at render time */
   renderPrompt?: (data: FlowData) => string | undefined;
 
@@ -64,7 +67,8 @@ export interface Step {
    */
   onAfterParse?: (
     value: unknown,
-    data: FlowData
+    data: FlowData,
+    input: unknown
   ) => Promise<Partial<FlowData> | void>;
 }
 

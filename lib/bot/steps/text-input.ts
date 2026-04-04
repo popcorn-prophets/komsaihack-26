@@ -2,6 +2,38 @@ import type { BotThread } from '@/lib/bot/types';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
+function hasImageAttachment(data: unknown): boolean {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  const attachments = (data as { attachments?: unknown }).attachments;
+  if (!Array.isArray(attachments)) {
+    return false;
+  }
+
+  return attachments.some((attachment) => {
+    if (!attachment || typeof attachment !== 'object') {
+      return false;
+    }
+
+    const currentAttachment = attachment as {
+      type?: unknown;
+      mimeType?: unknown;
+    };
+
+    if (currentAttachment.type === 'image') {
+      return true;
+    }
+
+    return (
+      currentAttachment.type === 'file' &&
+      typeof currentAttachment.mimeType === 'string' &&
+      currentAttachment.mimeType.startsWith('image/')
+    );
+  });
+}
+
 const renderCardPromise = import('../renderers/card-renderer').then(
   (module) => module.renderCard
 );
@@ -20,14 +52,23 @@ export class TextInputHandler extends BaseStepHandler {
         ? data
         : ((data as { text?: unknown })?.text as unknown);
 
+    const hasAttachedImage =
+      step.allowImageAttachments && hasImageAttachment(data);
+
     if (!text || typeof text !== 'string') {
+      if (hasAttachedImage) {
+        return { value: '' };
+      }
+
       return { error: 'Expected text input' };
     }
 
-    // Validate the value
-    const validationError = this.validateValue(text, step);
-    if (validationError) {
-      return { error: validationError };
+    // Validate the value unless this step is accepting image-only input.
+    if (!hasAttachedImage) {
+      const validationError = this.validateValue(text, step);
+      if (validationError) {
+        return { error: validationError };
+      }
     }
 
     return { value: text };
