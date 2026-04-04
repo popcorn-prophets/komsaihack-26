@@ -1,7 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,14 +10,21 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { createClient } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export function LoginForm({
   className,
+  notice,
+  showBootstrapLink = false,
   ...props
-}: React.ComponentPropsWithoutRef<'div'>) {
+}: React.ComponentPropsWithoutRef<'div'> & {
+  notice?: string | null;
+  showBootstrapLink?: boolean;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +44,7 @@ export function LoginForm({
       });
       if (error) throw error;
       // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push('/');
+      router.push('/control-center');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
@@ -59,6 +64,9 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
+              {notice ? (
+                <p className="text-sm text-emerald-600">{notice}</p>
+              ) : null}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -94,13 +102,19 @@ export function LoginForm({
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{' '}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Sign up
-              </Link>
+              {showBootstrapLink ? (
+                <>
+                  Need the initial admin account?{' '}
+                  <Link
+                    href="/auth/sign-up"
+                    className="underline underline-offset-4"
+                  >
+                    Create it here
+                  </Link>
+                </>
+              ) : (
+                'Need access? Ask an admin to send you an invite.'
+              )}
             </div>
           </form>
         </CardContent>

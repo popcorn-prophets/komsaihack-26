@@ -34,6 +34,51 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_invites: {
+        Row: {
+          accepted_at: string | null;
+          accepted_user_id: string | null;
+          claim_expires_at: string | null;
+          created_at: string;
+          email: string;
+          expires_at: string | null;
+          id: string;
+          invited_by: string;
+          revoked_at: string | null;
+          role: Database['public']['Enums']['app_role'];
+          token_hash: string;
+          updated_at: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          accepted_user_id?: string | null;
+          claim_expires_at?: string | null;
+          created_at?: string;
+          email: string;
+          expires_at?: string | null;
+          id?: string;
+          invited_by: string;
+          revoked_at?: string | null;
+          role: Database['public']['Enums']['app_role'];
+          token_hash: string;
+          updated_at?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_user_id?: string | null;
+          claim_expires_at?: string | null;
+          created_at?: string;
+          email?: string;
+          expires_at?: string | null;
+          id?: string;
+          invited_by?: string;
+          revoked_at?: string | null;
+          role?: Database['public']['Enums']['app_role'];
+          token_hash?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       advisories: {
         Row: {
           created_at: string;
@@ -172,6 +217,27 @@ export type Database = {
           },
         ];
       };
+      profiles: {
+        Row: {
+          created_at: string;
+          full_name: string | null;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          full_name?: string | null;
+          id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          full_name?: string | null;
+          id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       residents: {
         Row: {
           created_at: string;
@@ -205,14 +271,107 @@ export type Database = {
         };
         Relationships: [];
       };
+      role_assignments: {
+        Row: {
+          created_at: string;
+          id: number;
+          role: Database['public']['Enums']['app_role'];
+          scope_id: string | null;
+          scope_type: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: never;
+          role: Database['public']['Enums']['app_role'];
+          scope_id?: string | null;
+          scope_type?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: never;
+          role?: Database['public']['Enums']['app_role'];
+          scope_id?: string | null;
+          scope_type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'role_assignments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      bootstrap_registration_open: { Args: never; Returns: boolean };
+      claim_account_invite: {
+        Args: { target_token_hash: string };
+        Returns: {
+          email: string;
+          expires_at: string;
+          id: string;
+          role: Database['public']['Enums']['app_role'];
+        }[];
+      };
+      claim_bootstrap_admin: {
+        Args: { target_email: string };
+        Returns: boolean;
+      };
+      complete_account_invite: {
+        Args: { target_token_hash: string; target_user_id: string };
+        Returns: {
+          email: string;
+          id: string;
+          role: Database['public']['Enums']['app_role'];
+        }[];
+      };
+      has_any_role: {
+        Args: {
+          target_roles: Database['public']['Enums']['app_role'][];
+          target_scope_id?: string;
+          target_scope_type?: string;
+        };
+        Returns: boolean;
+      };
+      has_role: {
+        Args: {
+          target_role: Database['public']['Enums']['app_role'];
+          target_scope_id?: string;
+          target_scope_type?: string;
+        };
+        Returns: boolean;
+      };
+      is_admin_or_above: { Args: never; Returns: boolean };
+      is_responder_or_above: { Args: never; Returns: boolean };
+      release_account_invite_claim: {
+        Args: { target_token_hash: string };
+        Returns: undefined;
+      };
+      release_bootstrap_admin_claim: {
+        Args: { target_email: string };
+        Returns: undefined;
+      };
+      set_staff_role: {
+        Args: {
+          target_role: Database['public']['Enums']['app_role'];
+          target_user_id: string;
+        };
+        Returns: {
+          role: Database['public']['Enums']['app_role'];
+          user_id: string;
+        }[];
+      };
     };
     Enums: {
+      app_role: 'super_admin' | 'admin' | 'responder';
       incident_severity: 'low' | 'moderate' | 'high' | 'critical';
       incident_status:
         | 'new'
@@ -355,6 +514,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      app_role: ['super_admin', 'admin', 'responder'],
       incident_severity: ['low', 'moderate', 'high', 'critical'],
       incident_status: [
         'new',
