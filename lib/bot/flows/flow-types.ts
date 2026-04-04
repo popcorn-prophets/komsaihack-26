@@ -78,6 +78,9 @@ export interface FlowThreadState {
   /** Data collected so far: { [stepId]: value, ... } */
   data: FlowData;
 
+  /** Temporary return target used by edit detours (e.g., back to confirmation). */
+  pendingReturnStepId?: string;
+
   /** Optional: timestamp when flow was started */
   startedAt?: number;
 

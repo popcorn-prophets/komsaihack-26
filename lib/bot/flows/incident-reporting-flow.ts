@@ -9,6 +9,7 @@ import {
   minLength,
   required,
 } from '../steps/validators';
+import { createEditableConfirmationStep } from './confirmation-step';
 import type { Flow } from './flow-types';
 import {
   fetchIncidentTypeNames,
@@ -33,6 +34,31 @@ function getSelectionStepById(flow: Flow, stepId: string): Step {
     throw new Error(`Expected selection step not found: ${stepId}`);
   }
   return step;
+}
+
+function getLocationSummary(data: Record<string, unknown>): string {
+  const locationPoint = data.location as
+    | {
+        type?: unknown;
+        coordinates?: unknown;
+        locationDescription?: unknown;
+      }
+    | undefined;
+
+  if (typeof locationPoint?.locationDescription === 'string') {
+    return locationPoint.locationDescription;
+  }
+
+  if (
+    locationPoint?.type === 'Point' &&
+    Array.isArray(locationPoint.coordinates) &&
+    typeof locationPoint.coordinates[0] === 'number' &&
+    typeof locationPoint.coordinates[1] === 'number'
+  ) {
+    return `${locationPoint.coordinates[1]}, ${locationPoint.coordinates[0]}`;
+  }
+
+  return 'Not provided';
 }
 
 async function hydrateIncidentReportingFlowOptions(): Promise<void> {
@@ -111,56 +137,39 @@ export const incidentReportingFlow: Flow = {
       dataKey: 'location',
       resolveLocationDescription: true,
     },
-    {
+    ...createEditableConfirmationStep({
       id: 'review_submission',
-      type: 'selection',
       prompt: 'Please review your report before submission.',
-      renderContent: (data) => {
-        const incidentType =
-          typeof data.incidentTypeName === 'string'
-            ? data.incidentTypeName
-            : 'Unknown';
-        const severity =
-          typeof data.severity === 'string' ? data.severity : 'Unknown';
-        const description =
-          typeof data.description === 'string'
-            ? data.description
-            : 'Not provided';
-
-        const locationPoint = data.location as
-          | {
-              type?: unknown;
-              coordinates?: unknown;
-              locationDescription?: unknown;
-            }
-          | undefined;
-
-        const locationSummary =
-          typeof locationPoint?.locationDescription === 'string'
-            ? locationPoint.locationDescription
-            : locationPoint?.type === 'Point' &&
-                Array.isArray(locationPoint.coordinates) &&
-                typeof locationPoint.coordinates[0] === 'number' &&
-                typeof locationPoint.coordinates[1] === 'number'
-              ? `${locationPoint.coordinates[1]}, ${locationPoint.coordinates[0]}`
-              : 'Not provided';
-
-        return [
-          `Incident Type: ${incidentType}`,
-          `Severity: ${severity}`,
-          `Description: ${description}`,
-          `Location: ${locationSummary}`,
-          '',
-          'Submit this report?',
-        ].join('\n');
-      },
-      options: [
-        { label: 'Confirm and Submit', value: 'confirm' },
-        { label: 'Cancel', value: 'cancel' },
+      editPrompt: 'Select the field you want to edit.',
+      confirmLabel: 'Confirm and Submit',
+      cancelLabel: 'Cancel',
+      editLabel: 'Edit',
+      fields: [
+        {
+          targetStepId: 'incident_type',
+          label: 'Incident Type',
+          dataKey: 'incidentTypeName',
+        },
+        {
+          targetStepId: 'severity',
+          label: 'Severity',
+          dataKey: 'severity',
+        },
+        {
+          targetStepId: 'description',
+          label: 'Description',
+          dataKey: 'description',
+        },
+        {
+          targetStepId: 'location',
+          label: 'Location',
+          dataKey: 'location',
+          renderValue: (data) => getLocationSummary(data),
+        },
       ],
-      validations: [required],
-      dataKey: 'submissionDecision',
-    },
+      footer:
+        'Select a field to edit, cancel the report, or confirm to submit.',
+    }),
   ],
 
   /**

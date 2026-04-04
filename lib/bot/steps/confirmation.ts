@@ -6,30 +6,93 @@ const renderCardPromise = import('../renderers/card-renderer').then(
   (module) => module.renderCard
 );
 
+const renderSelectionCardPromise = import('../renderers/card-renderer').then(
+  (module) => module.renderSelectionCard
+);
+
+function extractActionValue(data: unknown): string | undefined {
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  if (!data || typeof data !== 'object') {
+    return undefined;
+  }
+
+  const value = (data as { value?: unknown }).value;
+  return typeof value === 'string' ? value : undefined;
+}
+
+function resolveInteractiveDecision(value: string): string | undefined {
+  if (value === 'confirm' || value === 'cancel' || value === 'edit') {
+    return value;
+  }
+
+  return undefined;
+}
+
 /**
  * Handler for confirmation steps.
- * Displays a summary and indicates completion.
- * Does not accept user input - just renders confirmation.
+ * Supports auto-complete confirmations and interactive edit/review confirmations.
  */
 export class ConfirmationHandler extends BaseStepHandler {
   type = 'confirmation' as const;
 
-  parse(_data: unknown, _step: Step): { value: unknown } | { error: string } {
-    void _data;
-    void _step;
+  parse(data: unknown, step: Step): { value: unknown } | { error: string } {
+    const confirmation = step.confirmation;
 
-    // Confirmation steps don't parse user input
-    return { value: null };
+    if (!confirmation || confirmation.mode !== 'interactive') {
+      return { value: null };
+    }
+
+    const value = extractActionValue(data);
+    if (!value) {
+      return { error: 'Expected selection value' };
+    }
+
+    const resolvedDecision = resolveInteractiveDecision(value);
+    if (!resolvedDecision) {
+      return {
+        error: 'Invalid selection. Please choose one of the available options.',
+      };
+    }
+
+    const validationError = this.validateValue(resolvedDecision, step);
+    if (validationError) {
+      return { error: validationError };
+    }
+
+    return { value: resolvedDecision };
   }
 
   async render(thread: BotThread, step: Step): Promise<void> {
-    const renderCard = await renderCardPromise;
+    const confirmation = step.confirmation;
 
-    const prompt = step.prompt || 'Thank you!';
+    if (!confirmation || confirmation.mode !== 'interactive') {
+      const renderCard = await renderCardPromise;
+      const prompt = step.prompt || 'Thank you!';
 
-    await renderCard(thread, {
+      await renderCard(thread, {
+        title: prompt,
+        content: 'Your information has been saved successfully.',
+      });
+      return;
+    }
+
+    const renderSelectionCard = await renderSelectionCardPromise;
+    const prompt = step.prompt || 'Please review your response';
+    const confirmLabel = confirmation.confirmLabel ?? 'Confirm and Submit';
+    const cancelLabel = confirmation.cancelLabel ?? 'Cancel';
+    const editLabel = confirmation.editLabel ?? 'Edit';
+
+    await renderSelectionCard(thread, {
       title: prompt,
-      content: 'Your information has been saved successfully.',
+      content: step.content,
+      options: [
+        { label: confirmLabel, value: 'confirm' },
+        { label: editLabel, value: 'edit' },
+        { label: cancelLabel, value: 'cancel' },
+      ],
     });
   }
 }

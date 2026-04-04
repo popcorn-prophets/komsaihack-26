@@ -141,6 +141,29 @@ export function registerMessageHandlers(bot: BotInstance) {
     return { state, flow };
   }
 
+  async function ensureSelectionStepOptions(
+    thread: BotThread,
+    flow: Flow,
+    state: FlowThreadState
+  ): Promise<void> {
+    if (flowEngine.isFlowComplete(flow, state)) {
+      return;
+    }
+
+    const currentStep = flowEngine.getCurrentStep(flow, state);
+    if (currentStep.type !== 'selection') {
+      return;
+    }
+
+    if ((currentStep.options?.length ?? 0) > 0) {
+      return;
+    }
+
+    if (flow.onStart) {
+      await flow.onStart(thread);
+    }
+  }
+
   async function continueFlowAfterTransition(
     thread: BotThread,
     flow: Flow,
@@ -158,11 +181,16 @@ export function registerMessageHandlers(bot: BotInstance) {
     }
 
     while (!flowEngine.isFlowComplete(flow, currentState)) {
+      await ensureSelectionStepOptions(thread, flow, currentState);
+
       const currentStep = flowEngine.getCurrentStep(flow, currentState);
 
       await flowEngine.renderCurrentStep(thread, flow, currentState);
 
-      if (currentStep.type !== 'confirmation') {
+      if (
+        currentStep.type !== 'confirmation' ||
+        currentStep.confirmation?.mode === 'interactive'
+      ) {
         return;
       }
 
@@ -191,6 +219,8 @@ export function registerMessageHandlers(bot: BotInstance) {
 
     const { state, flow } = context;
 
+    await ensureSelectionStepOptions(thread, flow, state);
+
     if (flowEngine.isFlowComplete(flow, state)) {
       await thread.post('The flow is already complete.');
       return;
@@ -198,7 +228,10 @@ export function registerMessageHandlers(bot: BotInstance) {
 
     if (options?.requireSelectionStep) {
       const currentStep = flowEngine.getCurrentStep(flow, state);
-      if (currentStep.type !== 'selection') {
+      if (
+        currentStep.type !== 'selection' &&
+        currentStep.type !== 'confirmation'
+      ) {
         return;
       }
     }

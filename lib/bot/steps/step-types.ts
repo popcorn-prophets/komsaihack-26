@@ -21,6 +21,46 @@ export interface SelectionOption {
 }
 
 /**
+ * Field summary shown in an interactive confirmation step.
+ */
+export interface ConfirmationField {
+  /** Step ID to rewind to when editing this field */
+  targetStepId: string;
+
+  /** Display label shown in the confirmation summary */
+  label: string;
+
+  /** Optional data key to read the field value from */
+  dataKey?: string;
+
+  /** Optional formatter for the displayed value */
+  renderValue?: (data: FlowData) => string;
+}
+
+/**
+ * Configuration for confirmation steps.
+ */
+export interface ConfirmationStepConfig {
+  /** Enable interactive confirm/edit actions instead of auto-completing */
+  mode?: 'auto' | 'interactive';
+
+  /** Fields shown in the review summary and made editable */
+  fields?: ConfirmationField[];
+
+  /** Label for the confirm action */
+  confirmLabel?: string;
+
+  /** Label for the cancel action */
+  cancelLabel?: string;
+
+  /** Prefix for edit action labels */
+  editLabel?: string;
+
+  /** Footer text shown below the field summary */
+  footer?: string;
+}
+
+/**
  * Represents a single step in a conversation flow.
  * Steps are reusable building blocks that can be composed into flows.
  */
@@ -54,6 +94,9 @@ export interface Step {
 
   /** Validation rules applied to user input */
   validations?: Validator[];
+
+  /** Confirmation step configuration for interactive review flows */
+  confirmation?: ConfirmationStepConfig;
 
   /**
    * Determines which step to transition to based on collected data.
