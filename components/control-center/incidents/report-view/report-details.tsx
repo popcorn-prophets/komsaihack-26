@@ -75,7 +75,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
   });
 
   // TODO: refactor this block (ideally change query to automatically retrieve
-  // respondent name and incident type name
+  // respondent name and incident type name)
   function retrieveIncidentName(incident: Incident | null) {
     if (incident) {
       getIncidentName(incident.incident_type_id).then((incidentName) => {
