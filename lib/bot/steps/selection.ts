@@ -50,6 +50,7 @@ export class SelectionHandler extends BaseStepHandler {
 
     await renderSelectionCard(thread, {
       title: prompt,
+      content: step.content,
       options,
     });
   }

@@ -16,6 +16,7 @@ export interface CardOptions {
  */
 export interface SelectionCardOptions {
   title: string;
+  content?: string;
   options: SelectionOption[];
 }
 
@@ -42,6 +43,7 @@ export async function renderSelectionCard(
 ): Promise<void> {
   await thread.post(
     <Card title={options.title}>
+      {options.content ? <CardText>{options.content}</CardText> : null}
       <Actions>
         {options.options.map((option) => (
           <Button

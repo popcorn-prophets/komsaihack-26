@@ -15,7 +15,10 @@ export abstract class BaseStepHandler implements StepHandler {
   abstract parse(
     data: unknown,
     step: Step
-  ): { value: unknown } | { error: string };
+  ):
+    | { value: unknown }
+    | { error: string }
+    | Promise<{ value: unknown } | { error: string }>;
 
   /**
    * Render the step prompt/UI.

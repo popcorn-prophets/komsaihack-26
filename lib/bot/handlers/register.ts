@@ -93,17 +93,32 @@ export function registerMessageHandlers(bot: BotInstance) {
     input: unknown,
     context: { hasResident: boolean }
   ): Promise<boolean> {
-    const command = normalizeText(input);
-    if (!command) {
+    if (typeof input !== 'string') {
       return false;
     }
 
-    const flow = flowRegistry.getByCommand(command);
-    if (!flow) {
+    const resolved = flowRegistry.resolveStartCommandInput(input);
+    if (!resolved) {
       return false;
     }
 
-    return startFlow(thread, flow, context);
+    const started = await startFlow(thread, resolved.flow, context);
+    if (!started || !resolved.payload) {
+      return started;
+    }
+
+    const state = (await thread.state) as FlowThreadState | null;
+    if (!state) {
+      return started;
+    }
+
+    const currentStep = flowEngine.getCurrentStep(resolved.flow, state);
+    if (currentStep.type !== 'text') {
+      return started;
+    }
+
+    await processFlowInput(thread, resolved.payload);
+    return true;
   }
 
   async function resolveFlowContext(thread: BotThread): Promise<{
