@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Map,
@@ -35,6 +35,12 @@ export function InteractiveMap({ markers, destination }: InteractiveMapProps) {
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(
     markers[0]?.id ?? null
   );
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>(
+    []
+  );
+  const [routeStatus, setRouteStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle');
 
   const selectedMarker =
     markers.find((marker) => marker.id === selectedMarkerId) ??
@@ -46,19 +52,71 @@ export function InteractiveMap({ markers, destination }: InteractiveMapProps) {
     ? [markers[0].longitude, markers[0].latitude]
     : [destination.longitude, destination.latitude];
 
-  const routeCoordinates: [number, number][] = selectedMarker
-    ? [
-        [selectedMarker.longitude, selectedMarker.latitude],
-        [destination.longitude, destination.latitude],
-      ]
-    : [];
-
   const routeMapCenter: [number, number] = selectedMarker
     ? [
         (selectedMarker.longitude + destination.longitude) / 2,
         (selectedMarker.latitude + destination.latitude) / 2,
       ]
     : [destination.longitude, destination.latitude];
+
+  useEffect(() => {
+    if (!selectedMarker) {
+      setRouteCoordinates([]);
+      setRouteStatus('idle');
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadRoute() {
+      setRouteStatus('loading');
+
+      try {
+        // damn url string manipulation without manual
+        const params = new URLSearchParams({
+          startLng: String(selectedMarker.longitude),
+          startLat: String(selectedMarker.latitude),
+          endLng: String(destination.longitude),
+          endLat: String(destination.latitude),
+        });
+
+        const response = await fetch(`/api/directions?${params.toString()}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch route.');
+        }
+
+        const payload = (await response.json()) as {
+          coordinates?: [number, number][];
+        };
+        const coordinates = Array.isArray(payload.coordinates)
+          ? payload.coordinates
+          : [];
+
+        if (coordinates.length < 2) {
+          throw new Error('Route geometry is empty.');
+        }
+
+        setRouteCoordinates(coordinates);
+        setRouteStatus('ready');
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error('Failed to load road route:', error);
+        setRouteCoordinates([]);
+        setRouteStatus('error');
+      }
+    }
+
+    void loadRoute();
+
+    return () => {
+      controller.abort();
+    };
+  }, [destination.latitude, destination.longitude, selectedMarker]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[0.9fr_1.4fr]">
@@ -135,6 +193,14 @@ export function InteractiveMap({ markers, destination }: InteractiveMapProps) {
         {!selectedMarker ? (
           <div className="pointer-events-none absolute inset-x-6 top-6 z-10 rounded-md border bg-background/95 px-3 py-2 text-sm text-muted-foreground shadow-sm">
             Route preview is waiting for one real incident marker from SQL.
+          </div>
+        ) : routeStatus === 'loading' ? (
+          <div className="pointer-events-none absolute inset-x-6 top-6 z-10 rounded-md border bg-background/95 px-3 py-2 text-sm text-muted-foreground shadow-sm">
+            Loading road-based route to {destination.label}.
+          </div>
+        ) : routeStatus === 'error' ? (
+          <div className="pointer-events-none absolute inset-x-6 top-6 z-10 rounded-md border bg-background/95 px-3 py-2 text-sm text-muted-foreground shadow-sm">
+            Could not load a road route for this marker.
           </div>
         ) : (
           <div className="pointer-events-none absolute inset-x-6 top-6 z-10 rounded-md border bg-background/95 px-3 py-2 text-sm text-muted-foreground shadow-sm">
