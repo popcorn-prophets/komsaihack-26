@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ci": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
+    "ci": "pnpm exec next typegen && pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
     "prepare": "husky"
   },
   "lint-staged": {
