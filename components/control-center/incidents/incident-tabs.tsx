@@ -1,10 +1,3 @@
-/*
-NOTE: THIS IS A PLACEHOLDER COMPONENT UNTIL
-DIRECT CONNECTION WITH MESSAGING APPS IS INTEGRATED.
-
-NOT INDICATIVE OF THE FINAL PRODUCT.
-*/
-
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
