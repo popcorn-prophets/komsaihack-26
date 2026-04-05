@@ -33,7 +33,10 @@ export function Location({ incidentID }: MapComponentProps) {
     const markIncidentLoc = async () => {
       try {
         const incidents = await fetchIncidentById(incidentID);
-        if (!incidents?.location) return;
+        if (!incidents?.location) {
+          setParsedCoord({ lat: null, long: null });
+          return;
+        }
 
         const coordString = hexToCoordinates(incidents.location);
         if (!coordString) return;
@@ -51,7 +54,6 @@ export function Location({ incidentID }: MapComponentProps) {
         console.error('Error fetching incident location:', error);
       }
     };
-
     markIncidentLoc();
   }, [incidentID]);
 
@@ -90,10 +92,11 @@ export function Location({ incidentID }: MapComponentProps) {
 
   return (
     <Map ref={mapRef}>
+      {/*ternary operator used for first time loading behavior*/}
       {parsedCoord.lat !== null && parsedCoord.long !== null && (
         <MapMarker
-          latitude={parsedCoord.lat}
-          longitude={parsedCoord.long}
+          latitude={parsedCoord.lat ? parsedCoord.lat : defaultLocation[1]}
+          longitude={parsedCoord.long ? parsedCoord.long : defaultLocation[0]}
           onClick={zoomToMarker}
         >
           <MarkerContent />

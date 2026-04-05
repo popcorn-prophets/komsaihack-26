@@ -27,6 +27,7 @@ export function IncidentList({ onIncidentSelect }: IncidentListProps) {
   const [selectedIncident, setSelectedIncident] = React.useState<string | null>(
     null
   );
+  const isFirstLoadRef = React.useRef(true);
 
   // display loading
   React.useEffect(() => {
@@ -35,6 +36,12 @@ export function IncidentList({ onIncidentSelect }: IncidentListProps) {
       const data = await getReportData();
       if (data) {
         setIncidents(data);
+        if (isFirstLoadRef.current) {
+          const firstIncidentId = data[0].id;
+          setSelectedIncident(firstIncidentId);
+          onIncidentSelect?.(firstIncidentId);
+          isFirstLoadRef.current = false;
+        }
       }
       setLoading(false);
     };

@@ -118,7 +118,6 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
         retrieveIncidentName(incident)
       );
     }
-    console.log(formData);
   }, [incidentID]); // Re-run when incidentID changes
 
   return (
@@ -164,6 +163,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formLocation"
             type="text"
             defaultValue={formData.location}
+            disabled
           />
         </Field>
         <Field>
@@ -220,6 +220,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formCreatedOn"
             type="datetime-local"
             defaultValue={formData.created_at}
+            disabled
           />
         </Field>
         <Field>
@@ -228,6 +229,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formUpdatedOn"
             type="datetime-local"
             defaultValue={formData.updated_at}
+            disabled
           />
         </Field>
         <FieldGroup className="w-full">
