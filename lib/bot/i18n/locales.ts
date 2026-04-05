@@ -96,8 +96,8 @@ export const messageCatalog: MessageCatalog = {
     fil: 'Ipapadala mo na ba ang ulat na ito?',
   },
   'incident.review.confirm': {
-    eng: 'Confirm and Submit',
-    fil: 'Kumpirmahin at Ipadala',
+    eng: 'Confirm',
+    fil: 'Kumpirmahin',
   },
   'incident.review.cancel': {
     eng: 'Cancel',
