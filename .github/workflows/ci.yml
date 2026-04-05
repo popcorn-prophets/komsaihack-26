@@ -58,4 +58,5 @@ jobs:
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME || 'project_hermes_bot' }}
 
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY || 'mock-google-api-key' }}
+          DEEPGRAM_API_KEY: ${{ secrets.DEEPGRAM_API_KEY || 'mock-deepgram-api-key' }}
         run: pnpm run ci
