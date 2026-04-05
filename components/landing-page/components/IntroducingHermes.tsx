@@ -1,41 +1,67 @@
 'use client';
 
+import HermesBlack from '@/components/assets/hermes-black.png';
+import HermesWhite from '@/components/assets/hermes-white.png';
 import Wordmark from '@/components/brand/wordmark';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardDecorator } from '@/components/ui/card-decorator';
-import { Code, Crown, Layout, Palette } from 'lucide-react';
+import { Bell, Bot, Globe, Map } from 'lucide-react';
+import Image from 'next/image';
 
 const values = [
   {
-    icon: Code,
-    title: 'Developer First',
+    icon: Bot,
+    title: 'AI-Powered Parsing',
     description:
-      'Every component is built with the developer experience in mind, ensuring clean code and easy integration.',
+      'Unstructured citizen messages are automatically converted into structured incident reports using LLM and NLP technology — no manual sorting required.',
   },
   {
-    icon: Palette,
-    title: 'Design Excellence',
+    icon: Globe,
+    title: 'Multi-Platform Integration',
     description:
-      'We maintain the highest design standards, following shadcn/ui principles and modern UI patterns.',
+      'Residents can report incidents through familiar platforms like Telegram and Messenger, with no new apps to install.',
   },
   {
-    icon: Layout,
-    title: 'Production Ready',
+    icon: Map,
+    title: 'Real-Time Situational Awareness',
     description:
-      'Battle-tested components used in real applications with proven performance and reliability across different environments.',
+      'M/CDRRMO officers get a live feed of incoming reports with map-based visualization, filtering, and categorization tools.',
   },
   {
-    icon: Crown,
-    title: 'Premium Quality',
+    icon: Bell,
+    title: 'Rapid Dissemination',
     description:
-      'Hand-crafted with attention to detail and performance optimization, ensuring exceptional user experience and accessibility.',
+      'Send targeted advisories and alerts to residents by location or incident type — instantly, through the same channels they already use.',
   },
 ];
 
 export function AboutSection() {
   return (
-    <section id="about" className="py-20 sm:py-32 -mt-20 relative w-full">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="about"
+      className="py-20 sm:py-32 -mt-20 relative w-full overflow-hidden"
+    >
+      {/* Hermes background illustration */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-start">
+        <div className="relative h-[800px] w-[680px] -translate-x-[12%] opacity-[0.07] dark:opacity-[0.05]">
+          <Image
+            src={HermesBlack}
+            alt=""
+            fill
+            className="object-contain dark:hidden"
+            aria-hidden
+          />
+          <Image
+            src={HermesWhite}
+            alt=""
+            fill
+            className="hidden object-contain dark:block"
+            aria-hidden
+          />
+        </div>
+      </div>
+
+      <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-4xl text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
@@ -45,14 +71,13 @@ export function AboutSection() {
             <Wordmark />
           </div>
           <p className="text-lg text-muted-foreground mb-8">
-            We&apos;re passionate about creating the best marketplace for
-            shadcn/ui components and templates. Our mission is to accelerate
-            development and help developers build beautiful admin interfaces
-            faster.
+            HERMES is a centralized disaster communication control center that
+            connects residents and responders through the platforms they already
+            use.
           </p>
         </div>
 
-        {/* Modern Values Grid with Enhanced Design */}
+        {/* Values Grid */}
         <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 xl:grid-cols-4 mb-12">
           {values.map((value, index) => (
             <Card key={index} className="group shadow-xs py-2">
