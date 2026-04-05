@@ -1,5 +1,6 @@
 import { IncidentMarker } from '@/components/control-center/map/interactive-map';
 import { InteractiveMapShell } from '@/components/control-center/map/interactive-map-shell';
+import { toPoint } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Tables } from '@/types/supabase';
@@ -13,13 +14,68 @@ const MIAGAO_MDRRMO_DESTINATION = {
 
 type IncidentMapRow = Pick<
   Tables<'incidents'>,
-  'id' | 'location_description' | 'severity' | 'status'
-> & {
-  longitude: number | null;
-  latitude: number | null;
-  description?: string | null;
-  incident_time?: string | null;
-};
+  | 'id'
+  | 'description'
+  | 'incident_time'
+  | 'location'
+  | 'location_description'
+  | 'severity'
+  | 'status'
+>;
+
+function toCoordinates(location: IncidentMapRow['location']) {
+  const point = toPoint(location);
+  if (point) {
+    const [longitude, latitude] = point.coordinates;
+    return { longitude, latitude };
+  }
+
+  if (typeof location === 'string') {
+    const match = location.match(
+      /^POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)$/i
+    );
+
+    if (match) {
+      return {
+        longitude: Number(match[1]),
+        latitude: Number(match[2]),
+      };
+    }
+
+    const ewkbPattern = /^[0-9a-f]+$/i;
+    if (ewkbPattern.test(location) && location.length >= 42) {
+      try {
+        const buffer = Buffer.from(location, 'hex');
+        const byteOrder = buffer.readUInt8(0);
+        const readUInt32 =
+          byteOrder === 1
+            ? (offset: number) => buffer.readUInt32LE(offset)
+            : (offset: number) => buffer.readUInt32BE(offset);
+        const readDouble =
+          byteOrder === 1
+            ? (offset: number) => buffer.readDoubleLE(offset)
+            : (offset: number) => buffer.readDoubleBE(offset);
+
+        const type = readUInt32(1);
+        const hasSrid = (type & 0x20000000) !== 0;
+        const geometryType = type & 0xff;
+
+        if (geometryType === 1) {
+          const coordinateOffset = hasSrid ? 9 : 5;
+
+          return {
+            longitude: readDouble(coordinateOffset),
+            latitude: readDouble(coordinateOffset + 8),
+          };
+        }
+      } catch {
+        // ignore parse failure and fall through to null coordinates
+      }
+    }
+  }
+
+  return { longitude: null, latitude: null };
+}
 
 export default async function Page() {
   let data: IncidentMapRow[] | null = null;
@@ -28,19 +84,18 @@ export default async function Page() {
   try {
     const admin = createAdminClient();
     const adminResult = await admin
-      .from('incidents_with_coords')
+      .from('incidents')
       .select(
-        'id, location_description, severity, status, longitude, latitude'
+        'id, description, incident_time, location, location_description, severity, status'
       );
     data = adminResult.data;
     error = adminResult.error;
   } catch (adminError) {
     const supabase = await createClient();
     const userResult = await supabase
-      // View returns computed longitude/latitude so we don't need to parse geography client-side.
-      .from('incidents_with_coords')
+      .from('incidents')
       .select(
-        'id, location_description, severity, status, longitude, latitude'
+        'id, description, incident_time, location, location_description, severity, status'
       );
     data = userResult.data;
     error = userResult.error;
@@ -52,10 +107,7 @@ export default async function Page() {
   }
 
   const dbMarkers: IncidentMarker[] = (data ?? []).flatMap((incident) => {
-    const longitude =
-      typeof incident.longitude === 'number' ? incident.longitude : null;
-    const latitude =
-      typeof incident.latitude === 'number' ? incident.latitude : null;
+    const { longitude, latitude } = toCoordinates(incident.location);
 
     if (longitude === null || latitude === null) return [];
 
