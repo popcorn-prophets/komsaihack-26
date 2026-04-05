@@ -2,6 +2,7 @@ import type { Flow } from './flow-types';
 import { incidentReportingFlow } from './incident-reporting-flow';
 import { incidentReportingFreeformFlow } from './incident-reporting-freeform-flow';
 import { onboardingFlow } from './onboarding-flow';
+import { residentThreadSettingsFlow } from './resident-thread-settings-flow';
 
 export interface ResolvedStartCommand {
   flow: Flow;
@@ -25,6 +26,7 @@ class FlowRegistry {
     this.register(onboardingFlow);
     this.register(incidentReportingFlow);
     this.register(incidentReportingFreeformFlow);
+    this.register(residentThreadSettingsFlow);
   }
 
   /**
