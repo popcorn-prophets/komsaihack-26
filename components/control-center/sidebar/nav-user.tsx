@@ -89,7 +89,9 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push('/control-center/settings')}
+              >
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
