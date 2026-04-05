@@ -17,7 +17,7 @@ export default async function Page() {
 
   return (
     <div className="@container/main flex flex-1 flex-col gap-6 px-4 py-4 md:py-6 lg:px-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
         <AdvisoryTargetingPanel templates={templates} residents={residents} />
 
         <section className="flex flex-col gap-4">

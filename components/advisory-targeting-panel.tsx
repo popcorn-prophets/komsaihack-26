@@ -103,10 +103,8 @@ export function AdvisoryTargetingPanel({
   }, [polygonCoordinates, residentsWithCoordinates]);
 
   return (
-    <>
-      <AdvisoryComposeForm templates={templates} targetPolygon={polygonJson} />
-
-      <Card className="h-80 overflow-hidden p-0">
+    <div className="flex flex-col gap-6">
+      <Card className="h-60 overflow-hidden p-0">
         <Map center={[121.0533, 14.6512]} zoom={11}>
           {residentsWithCoordinates.map((resident) => {
             const isSelected = selectedResidentIds.has(resident.id);
@@ -154,6 +152,8 @@ export function AdvisoryTargetingPanel({
           <MapControls showZoom showCompass />
         </Map>
       </Card>
-    </>
+
+      <AdvisoryComposeForm templates={templates} targetPolygon={polygonJson} />
+    </div>
   );
 }
