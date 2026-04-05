@@ -7,6 +7,7 @@ import { redirect, unstable_rethrow } from 'next/navigation';
 
 import {
   asErrorState,
+  describeActionError,
   INITIAL_AUTH_ACTION_STATE,
   releaseBootstrapClaim,
 } from './action-helpers';
@@ -86,10 +87,15 @@ export async function createBootstrapAdminAction(
       await releaseBootstrapClaim(email);
       claimReserved = false;
 
+      const createUserErrorMessage = describeActionError(
+        createUserError,
+        'Unable to create the initial admin account right now.'
+      );
+
       return asErrorState(
-        createUserError.message.includes('already')
+        createUserErrorMessage.toLowerCase().includes('already')
           ? 'That email address is already registered.'
-          : createUserError.message
+          : createUserErrorMessage
       );
     }
 

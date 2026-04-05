@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  IconAddressBook,
   IconChartBar,
   IconDashboard,
   IconHelp,
@@ -55,6 +56,11 @@ export function AppSidebar({
       title: 'Map',
       url: '/control-center/map',
       icon: IconMap,
+    },
+    {
+      title: 'Residents',
+      url: '/control-center/residents',
+      icon: IconAddressBook,
     },
     ...(canAccessAdminPanel
       ? [

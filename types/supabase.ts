@@ -137,7 +137,41 @@ export type Database = {
             referencedRelation: 'residents';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'advisory_recipients_resident_id_fkey';
+            columns: ['resident_id'];
+            isOneToOne: false;
+            referencedRelation: 'residents_with_coords';
+            referencedColumns: ['id'];
+          },
         ];
+      };
+      advisory_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          message: string;
+          name: string;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          message: string;
+          name: string;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          message?: string;
+          name?: string;
+          title?: string;
+        };
+        Relationships: [];
       };
       incident_types: {
         Row: {
@@ -213,6 +247,13 @@ export type Database = {
             columns: ['reported_by'];
             isOneToOne: false;
             referencedRelation: 'residents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'incidents_reported_by_fkey';
+            columns: ['reported_by'];
+            isOneToOne: false;
+            referencedRelation: 'residents_with_coords';
             referencedColumns: ['id'];
           },
         ];
@@ -312,7 +353,7 @@ export type Database = {
         Row: {
           id: string | null;
           latitude: number | null;
-          location_description: string | null;
+          location_description: string | null;  
           longitude: number | null;
           severity: Database['public']['Enums']['incident_severity'] | null;
           status: Database['public']['Enums']['incident_status'] | null;

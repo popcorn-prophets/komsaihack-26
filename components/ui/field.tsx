@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -121,7 +121,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="field-description"
       className={cn(
-        'text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary',
+        'text-xs leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary',
         className
       )}
       {...props}

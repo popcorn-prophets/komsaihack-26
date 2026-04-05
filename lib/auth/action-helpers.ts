@@ -21,6 +21,29 @@ export function asErrorState(
   };
 }
 
+export function describeActionError(
+  error: unknown,
+  fallbackMessage: string
+): string {
+  if (error instanceof Error) {
+    return error.message || fallbackMessage;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+      return maybeMessage;
+    }
+
+    const maybeStatus = (error as { status?: unknown }).status;
+    if (typeof maybeStatus === 'number') {
+      return `${fallbackMessage} (status ${maybeStatus})`;
+    }
+  }
+
+  return fallbackMessage;
+}
+
 export function inviteRoleAllowed(role: AppRole, canInviteAdmins: boolean) {
   if (role === 'responder') {
     return true;
