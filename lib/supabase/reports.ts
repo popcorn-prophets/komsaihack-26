@@ -19,6 +19,8 @@ export interface Incident {
 }
 
 export async function fetchIncidents(
+  sortBy: string = 'incident_time',
+  sortOrder: string = 'descending',
   count: number = 50
 ): Promise<Incident[] | null> {
   try {
@@ -39,7 +41,9 @@ export async function fetchIncidents(
         residents (name),
         incident_types (name)`
       )
-      .order('created_at', { ascending: false })
+      .neq('status', 'resolved')
+      .neq('status', 'dismissed')
+      .order(sortBy, { ascending: sortOrder === 'ascending' ? true : false })
       .limit(count);
 
     if (error) {

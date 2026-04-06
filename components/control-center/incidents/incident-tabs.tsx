@@ -15,7 +15,7 @@ export function IncidentTabs() {
 
   React.useEffect(() => {
     const loadInitialIncident = async () => {
-      const incidents = await fetchIncidents(1);
+      const incidents = await fetchIncidents(undefined, undefined, 1);
       if (incidents && incidents.length > 0) {
         setSelectedIncidentID(incidents[0].id);
       }
