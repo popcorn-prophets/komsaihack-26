@@ -14,7 +14,6 @@ export async function AuthButton() {
   ]);
   const canManageInvites =
     userHasRole(user, 'admin') || userHasRole(user, 'super_admin');
-
   return user ? (
     <div className="flex items-center gap-4">
       <span className="hidden text-muted-foreground sm:inline">
