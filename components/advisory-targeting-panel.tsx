@@ -254,7 +254,13 @@ export function AdvisoryTargetingPanel({
             selectModeOptions={selectModeOptions}
             onChange={handlePolygonChange}
           />
-          <MapControls showZoom showCompass />
+          <MapControls
+            position="bottom-right"
+            showZoom
+            showCompass
+            showLocate
+            showFullscreen
+          />
         </Map>
       </Card>
 
