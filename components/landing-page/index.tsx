@@ -11,6 +11,7 @@ import { Navbar } from './components/NavBar';
 import { StatSection } from './components/StatSection';
 import { TeamSection } from './components/TeamSection';
 import { TestimonialsSection } from './components/Testimonials';
+import { WebChatDemoSection } from './components/WebChatDemoSection';
 
 export default function LandingPage() {
   return (
@@ -29,6 +30,7 @@ export default function LandingPage() {
           }
         />
         <HeroSection />
+        <WebChatDemoSection />
         <StatSection />
         <ChallengesSection />
         <AboutSection />
