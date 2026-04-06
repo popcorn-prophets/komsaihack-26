@@ -136,7 +136,7 @@ export const onboardingFlow: Flow = {
 
       if (!existingResident) {
         const { error: insertError } = await supabase.from('residents').insert({
-          platform: thread.adapter.name as 'telegram' | 'messenger',
+          platform: thread.adapter.name as 'telegram' | 'messenger' | 'webchat',
           platform_user_id: thread.id,
           thread_id: thread.id,
           name,

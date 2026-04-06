@@ -8,6 +8,7 @@ const telegram = createTelegramAdapter({
 });
 
 const messenger = createMessengerAdapter();
+
 const webchat = createWebChatAdapter();
 
 export const adapters = { telegram, messenger, webchat };

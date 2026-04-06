@@ -185,6 +185,10 @@ export function formatReporterPlatformLabel(value: ResidentPlatform | null) {
     return 'Messenger';
   }
 
+  if (value === 'webchat') {
+    return 'Web Chat';
+  }
+
   return 'Unknown platform';
 }
 
