@@ -7,6 +7,13 @@ interface CategoryCardProps {
   className?: string;
 }
 
+function formatTitle(title: string) {
+  const formattedTitle: string[] = title.split('_');
+  return formattedTitle.length === 1
+    ? formattedTitle[0]
+    : formattedTitle[0] + ' ' + formattedTitle[1];
+}
+
 const CategoryCard: React.FC<CategoryCardProps> = ({
   title,
   children,
@@ -15,7 +22,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>{formatTitle(title)}</CardTitle>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

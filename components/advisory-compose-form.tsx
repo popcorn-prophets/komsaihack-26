@@ -46,8 +46,12 @@ function fieldError(
 
 export function AdvisoryComposeForm({
   templates,
+  targetPolygon,
+  targetResidentIds,
 }: {
   templates: AdvisoryTemplateItem[];
+  targetPolygon?: string;
+  targetResidentIds?: string;
 }) {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [showAllTemplates, setShowAllTemplates] = useState(false);
@@ -97,7 +101,7 @@ export function AdvisoryComposeForm({
       <CardHeader>
         <CardTitle>Compose advisory</CardTitle>
         <CardDescription>
-          Send an advisory to every registered resident.
+          Send an advisory to residents inside the selected target area.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -159,6 +163,16 @@ export function AdvisoryComposeForm({
           </FieldGroup>
 
           <input type="hidden" name="templateName" value={templateName} />
+          <input
+            type="hidden"
+            name="targetPolygon"
+            value={targetPolygon ?? ''}
+          />
+          <input
+            type="hidden"
+            name="targetResidentIds"
+            value={targetResidentIds ?? ''}
+          />
 
           {templates.length > 0 ? (
             <div className="flex flex-col gap-2">

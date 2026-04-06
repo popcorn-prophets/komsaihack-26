@@ -1,4 +1,6 @@
 import type { BotThread } from '@/lib/bot/types';
+import { DEFAULT_LOCALE, isSupportedLocale } from '../i18n';
+import type { ResidentLocale } from '../i18n/types';
 import { stepHandlerRegistry } from '../steps/step-handler-registry';
 import type { Step } from '../steps/step-types';
 import { COMPLETE_FLOW_STEP_ID } from './confirmation-step';
@@ -17,13 +19,18 @@ import type { Flow, FlowData, FlowThreadState } from './flow-types';
  */
 class FlowEngine {
   private resolveStepForRender(step: Step, state: FlowThreadState): Step {
-    const resolvedPrompt = step.renderPrompt?.(state.data) ?? step.prompt;
-    const resolvedContent = step.renderContent?.(state.data) ?? step.content;
+    const resolvedPrompt =
+      step.renderPrompt?.(state.data, state.locale) ?? step.prompt;
+    const resolvedContent =
+      step.renderContent?.(state.data, state.locale) ?? step.content;
+    const resolvedOptions =
+      step.renderOptions?.(state.data, state.locale) ?? step.options;
 
     return {
       ...step,
       prompt: resolvedPrompt,
       content: resolvedContent,
+      options: resolvedOptions,
     };
   }
 
@@ -109,6 +116,7 @@ class FlowEngine {
       stepIndex: targetStepIndex,
       data: this.pruneDataFromStep(flow, data, targetStepIndex),
       pendingReturnStepId: state.pendingReturnStepId,
+      locale: state.locale,
       startedAt: state.startedAt,
     };
   }
@@ -145,6 +153,7 @@ class FlowEngine {
   async handleStepInput(
     flow: Flow,
     state: FlowThreadState,
+    thread: BotThread,
     input: unknown
   ): Promise<{
     nextState: FlowThreadState;
@@ -156,7 +165,7 @@ class FlowEngine {
     const handler = stepHandlerRegistry.get(currentStep.type);
 
     // Parse input
-    const parseResult = await handler.parse(input, currentStep);
+    const parseResult = await handler.parse(input, currentStep, thread);
 
     if ('error' in parseResult) {
       // Validation failed - stay on same step
@@ -169,6 +178,13 @@ class FlowEngine {
 
     // Parse succeeded - store value and determine next step
     const dataKey = currentStep.dataKey || currentStep.id;
+    let nextLocale = state.locale;
+
+    // Keep locale in thread state in-sync with language preference selection.
+    if (dataKey === 'language' && isSupportedLocale(parseResult.value)) {
+      nextLocale = parseResult.value;
+    }
+
     let updatedData = {
       ...state.data,
       [dataKey]: parseResult.value,
@@ -247,6 +263,7 @@ class FlowEngine {
       stepIndex: nextStepIndex,
       data: updatedData,
       pendingReturnStepId,
+      locale: nextLocale,
       startedAt: state.startedAt,
       completedAt: isComplete ? Date.now() : undefined,
     };
@@ -279,6 +296,7 @@ class FlowEngine {
         stepIndex: nextStepIndex,
         data: state.data,
         pendingReturnStepId: state.pendingReturnStepId,
+        locale: state.locale,
         startedAt: state.startedAt,
         completedAt: isComplete ? Date.now() : undefined,
       },
@@ -288,8 +306,13 @@ class FlowEngine {
 
   /**
    * Create initial flow state.
+   * Optionally accepts a locale; defaults to configured locale if not provided.
    */
-  createInitialState(flowId: string, flowVersion: number = 1): FlowThreadState {
+  createInitialState(
+    flowId: string,
+    flowVersion: number = 1,
+    locale: ResidentLocale = DEFAULT_LOCALE
+  ): FlowThreadState {
     const flow = this.getFlow(flowId);
 
     // Find starting step index
@@ -307,6 +330,7 @@ class FlowEngine {
       stepIndex: startStepIndex,
       data: {},
       pendingReturnStepId: undefined,
+      locale,
     };
   }
 }

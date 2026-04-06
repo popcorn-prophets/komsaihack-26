@@ -159,3 +159,22 @@
     @apply font-medium text-foreground underline underline-offset-4 hover:text-foreground/80;
   }
 }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 0.5s ease-in-out;
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0% at var(--click-x, 50%) var(--click-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+  }
+}

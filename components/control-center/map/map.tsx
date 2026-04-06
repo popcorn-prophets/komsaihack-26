@@ -1,6 +1,7 @@
 'use client';
 
-import MapLibreGL, { type PopupOptions, type MarkerOptions } from 'maplibre-gl';
+import { Loader2, Locate, Maximize, Minus, Plus, X } from 'lucide-react';
+import MapLibreGL, { type MarkerOptions, type PopupOptions } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   createContext,
@@ -16,7 +17,12 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Minus, Plus, Locate, Maximize, Loader2 } from 'lucide-react';
+import {
+  MapPolygonDrawPresenter,
+  type MapPolygonDrawMode,
+  type MapPolygonDrawProps,
+  type MapPolygonFeature,
+} from './map-polygon-draw';
 
 import { cn } from '@/lib/utils';
 
@@ -525,12 +531,18 @@ type MarkerPopupProps = {
   className?: string;
   /** Show a close button in the popup (default: false) */
   closeButton?: boolean;
+  /** Controls whether the popup is visible */
+  open?: boolean;
+  /** Fired when the popup opens or closes */
+  onOpenChange?: (open: boolean) => void;
 } & Omit<PopupOptions, 'className' | 'closeButton'>;
 
 function MarkerPopup({
   children,
   className,
   closeButton = false,
+  open,
+  onOpenChange,
   ...popupOptions
 }: MarkerPopupProps) {
   const { marker, map } = useMarkerContext();
@@ -561,6 +573,29 @@ function MarkerPopup({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
+
+  useEffect(() => {
+    const handleOpen = () => onOpenChange?.(true);
+    const handleClose = () => onOpenChange?.(false);
+
+    popup.on('open', handleOpen);
+    popup.on('close', handleClose);
+
+    return () => {
+      popup.off('open', handleOpen);
+      popup.off('close', handleClose);
+    };
+  }, [onOpenChange, popup]);
+
+  useEffect(() => {
+    if (!map || open === undefined) return;
+
+    if (open) {
+      popup.setLngLat(marker.getLngLat()).addTo(map);
+    } else {
+      popup.remove();
+    }
+  }, [map, marker, open, popup]);
 
   if (popup.isOpen()) {
     const prev = prevPopupOptions.current;
@@ -746,11 +781,13 @@ function ControlButton({
   label,
   children,
   disabled = false,
+  className,
 }: {
   onClick: () => void;
   label: string;
   children: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
@@ -759,7 +796,8 @@ function ControlButton({
       type="button"
       className={cn(
         'hover:bg-accent dark:hover:bg-accent/40 flex size-8 items-center justify-center transition-colors',
-        disabled && 'pointer-events-none cursor-not-allowed opacity-50'
+        disabled && 'pointer-events-none cursor-not-allowed opacity-50',
+        className
       )}
       disabled={disabled}
     >
@@ -1034,6 +1072,10 @@ type MapRouteProps = {
   coordinates: [number, number][];
   /** Line color as CSS color value (default: "#4285F4") */
   color?: string;
+  /** Optional casing color rendered behind the main route line */
+  casingColor?: string;
+  /** Optional casing width in pixels rendered behind the main route line */
+  casingWidth?: number;
   /** Line width in pixels (default: 3) */
   width?: number;
   /** Line opacity from 0 to 1 (default: 0.8) */
@@ -1054,6 +1096,8 @@ function MapRoute({
   id: propId,
   coordinates,
   color = '#4285F4',
+  casingColor,
+  casingWidth,
   width = 3,
   opacity = 0.8,
   dashArray,
@@ -1066,6 +1110,7 @@ function MapRoute({
   const autoId = useId();
   const id = propId ?? autoId;
   const sourceId = `route-source-${id}`;
+  const casingLayerId = `route-casing-layer-${id}`;
   const layerId = `route-layer-${id}`;
 
   // Add source and layer on mount
@@ -1080,6 +1125,20 @@ function MapRoute({
         geometry: { type: 'LineString', coordinates: [] },
       },
     });
+
+    if (casingColor && casingWidth && casingWidth > width) {
+      map.addLayer({
+        id: casingLayerId,
+        type: 'line',
+        source: sourceId,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': casingColor,
+          'line-width': casingWidth,
+          'line-opacity': opacity,
+        },
+      });
+    }
 
     map.addLayer({
       id: layerId,
@@ -1097,13 +1156,25 @@ function MapRoute({
     return () => {
       try {
         if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getLayer(casingLayerId)) map.removeLayer(casingLayerId);
         if (map.getSource(sourceId)) map.removeSource(sourceId);
       } catch {
         // ignore
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, map]);
+  }, [
+    casingColor,
+    casingLayerId,
+    casingWidth,
+    color,
+    dashArray,
+    isLoaded,
+    map,
+    opacity,
+    sourceId,
+    width,
+  ]);
 
   // When coordinates change, update the source data
   useEffect(() => {
@@ -1128,7 +1199,23 @@ function MapRoute({
     if (dashArray) {
       map.setPaintProperty(layerId, 'line-dasharray', dashArray);
     }
-  }, [isLoaded, map, layerId, color, width, opacity, dashArray]);
+    if (map.getLayer(casingLayerId) && casingColor && casingWidth) {
+      map.setPaintProperty(casingLayerId, 'line-color', casingColor);
+      map.setPaintProperty(casingLayerId, 'line-width', casingWidth);
+      map.setPaintProperty(casingLayerId, 'line-opacity', opacity);
+    }
+  }, [
+    casingColor,
+    casingLayerId,
+    casingWidth,
+    color,
+    dashArray,
+    isLoaded,
+    layerId,
+    map,
+    opacity,
+    width,
+  ]);
 
   // Handle click and hover events
   useEffect(() => {
@@ -1163,6 +1250,202 @@ function MapRoute({
     onMouseEnter,
     onMouseLeave,
     interactive,
+  ]);
+
+  return null;
+}
+
+type HeatmapFeatureProperties = GeoJSON.GeoJsonProperties & {
+  weight?: number;
+};
+
+type MapHeatmapLayerProps<
+  P extends HeatmapFeatureProperties = HeatmapFeatureProperties,
+> = {
+  /** GeoJSON FeatureCollection data or URL to fetch GeoJSON from */
+  data: string | GeoJSON.FeatureCollection<GeoJSON.Point, P>;
+  /** Optional unique identifier for the heatmap layer */
+  id?: string;
+  /** Heatmap color ramp using MapLibre style expressions */
+  colorRamp?: MapLibreGL.ExpressionSpecification;
+  /** Maximum zoom level at which the heatmap is visible */
+  maxVisibleZoom?: number;
+  /** Zoom level to start fading the heatmap */
+  fadeStartZoom?: number;
+  /** Base intensity multiplier */
+  intensity?: number;
+};
+
+function MapHeatmapLayer<
+  P extends HeatmapFeatureProperties = HeatmapFeatureProperties,
+>({
+  data,
+  id: propId,
+  //Mapbox style na property
+  colorRamp = [
+    'interpolate',
+    ['linear'],
+    ['heatmap-density'],
+    0,
+    'rgba(255,245,157,0)',
+    0.12,
+    'rgba(227,239,255,0.36)',
+    0.24,
+    'rgba(255,244,186,0.72)',
+    0.42,
+    'rgba(255,215,115,0.84)',
+    0.62,
+    'rgba(238,129,52,0.9)',
+    0.82,
+    'rgba(210,61,34,0.96)',
+    1,
+    'rgba(179,34,24,0.98)',
+  ],
+  maxVisibleZoom = 14,
+  fadeStartZoom = 13,
+  intensity = 1.2,
+}: MapHeatmapLayerProps<P>) {
+  const { map, isLoaded } = useMap();
+  const autoId = useId(); //Generate unique id for react
+  const id = propId ?? autoId;
+  const sourceId = `heatmap-source-${id}`;
+  const layerId = `heatmap-layer-${id}`;
+
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data,
+    });
+
+    map.addLayer({
+      id: layerId,
+      type: 'heatmap',
+      source: sourceId,
+      maxzoom: maxVisibleZoom,
+      paint: {
+        'heatmap-weight': [
+          'interpolate',
+          ['linear'],
+          ['coalesce', ['get', 'weight'], 0],
+          0,
+          0,
+          1,
+          1,
+        ],
+        'heatmap-intensity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          0,
+          intensity * 0.78,
+          6,
+          intensity * 0.92,
+          fadeStartZoom,
+          intensity * 1.35,
+        ],
+        //Mapbox style na property
+        'heatmap-color': colorRamp,
+        'heatmap-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          0,
+          10,
+          5,
+          14,
+          8,
+          18,
+          fadeStartZoom,
+          28,
+          maxVisibleZoom,
+          40,
+        ],
+        'heatmap-opacity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          0,
+          0.85,
+          fadeStartZoom,
+          0.6,
+          maxVisibleZoom,
+          0,
+        ],
+      },
+    });
+
+    return () => {
+      try {
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      } catch {
+        // ignore cleanup race conditions during style swaps
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, map]);
+
+  useEffect(() => {
+    if (!isLoaded || !map || typeof data === 'string') return;
+
+    const source = map.getSource(sourceId) as
+      | MapLibreGL.GeoJSONSource
+      | undefined;
+    source?.setData(data);
+  }, [data, isLoaded, map, sourceId]);
+
+  useEffect(() => {
+    if (!isLoaded || !map || !map.getLayer(layerId)) return;
+
+    map.setPaintProperty(layerId, 'heatmap-color', colorRamp);
+    map.setPaintProperty(layerId, 'heatmap-intensity', [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      0,
+      intensity * 0.78,
+      6,
+      intensity * 0.92,
+      fadeStartZoom,
+      intensity * 1.35,
+    ]);
+    map.setPaintProperty(layerId, 'heatmap-radius', [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      0,
+      10,
+      5,
+      14,
+      8,
+      18,
+      fadeStartZoom,
+      28,
+      maxVisibleZoom,
+      40,
+    ]);
+
+    map.setPaintProperty(layerId, 'heatmap-opacity', [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      0,
+      0.85,
+      fadeStartZoom,
+      0.6,
+      maxVisibleZoom,
+      0,
+    ]);
+  }, [
+    colorRamp,
+    fadeStartZoom,
+    intensity,
+    isLoaded,
+    layerId,
+    map,
+    maxVisibleZoom,
   ]);
 
   return null;
@@ -1471,6 +1754,12 @@ function MapClusterLayer<
   return null;
 }
 
+function MapPolygonDraw(props: MapPolygonDrawProps) {
+  const { map, isLoaded } = useMap();
+
+  return <MapPolygonDrawPresenter map={map} isLoaded={isLoaded} {...props} />;
+}
+
 export {
   Map,
   useMap,
@@ -1482,7 +1771,15 @@ export {
   MapPopup,
   MapControls,
   MapRoute,
+  MapHeatmapLayer,
+  MapPolygonDraw,
   MapClusterLayer,
 };
 
-export type { MapRef, MapViewport };
+export type {
+  MapPolygonDrawMode,
+  MapPolygonDrawProps,
+  MapPolygonFeature,
+  MapRef,
+  MapViewport,
+};

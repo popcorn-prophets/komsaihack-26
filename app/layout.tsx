@@ -1,6 +1,6 @@
+import { ThemeProvider } from '@/components/theme-provider'; // Updated to use local wrapper
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Metadata } from 'next';
-import { ThemeProvider } from 'next-themes';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
@@ -29,16 +29,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <Suspense fallback={null}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TooltipProvider>{children}</TooltipProvider>
-          </ThemeProvider>
-        </Suspense>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
+            {/* Suspense is moved inside the providers to avoid hydration script conflicts */}
+            <Suspense fallback={null}>{children}</Suspense>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

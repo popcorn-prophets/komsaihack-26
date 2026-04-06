@@ -1,10 +1,7 @@
 import 'server-only';
 
 import { createHash, randomBytes } from 'node:crypto';
-
-export function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
+export { normalizeEmail } from './normalization';
 
 export function createInviteToken() {
   return randomBytes(32).toString('base64url');

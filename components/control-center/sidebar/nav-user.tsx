@@ -1,19 +1,13 @@
 'use client';
 
-import {
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from '@tabler/icons-react';
+import { IconDotsVertical, IconLogout } from '@tabler/icons-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -87,14 +81,6 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Log out

@@ -22,6 +22,112 @@ type ResidentTarget = {
   platform: Database['public']['Enums']['resident_platform'];
 };
 
+type PolygonPayload = {
+  type: 'Polygon';
+  coordinates: [number, number][][];
+};
+
+type ResidentTargetWithCoords = ResidentTarget & {
+  longitude: number | null;
+  latitude: number | null;
+};
+
+function parseTargetPolygon(
+  value: FormDataEntryValue | null
+): PolygonPayload | null {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as PolygonPayload;
+
+    if (parsed.type !== 'Polygon' || !Array.isArray(parsed.coordinates)) {
+      return null;
+    }
+
+    const ring = parsed.coordinates[0];
+    if (!Array.isArray(ring) || ring.length < 4) {
+      return null;
+    }
+
+    const validRing = ring.every(
+      (coordinate) =>
+        Array.isArray(coordinate) &&
+        coordinate.length === 2 &&
+        typeof coordinate[0] === 'number' &&
+        typeof coordinate[1] === 'number'
+    );
+
+    return validRing ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseTargetResidentIds(
+  value: FormDataEntryValue | null
+): string[] | null {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    const normalizedIds = parsed.filter(
+      (entry): entry is string => typeof entry === 'string' && entry.length > 0
+    );
+
+    return normalizedIds;
+  } catch {
+    return null;
+  }
+}
+
+function pointInPolygon(point: [number, number], polygon: [number, number][]) {
+  const [x, y] = point;
+  let inside = false;
+
+  for (
+    let index = 0, previous = polygon.length - 1;
+    index < polygon.length;
+    previous = index++
+  ) {
+    const [xi, yi] = polygon[index];
+    const [xj, yj] = polygon[previous];
+    const intersects =
+      yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+
+    if (intersects) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+function filterResidentsWithinPolygon(
+  residents: ResidentTargetWithCoords[],
+  polygon: PolygonPayload
+) {
+  const ring = polygon.coordinates[0] ?? [];
+
+  return residents.filter((resident) => {
+    if (
+      typeof resident.longitude !== 'number' ||
+      typeof resident.latitude !== 'number'
+    ) {
+      return false;
+    }
+
+    return pointInPolygon([resident.longitude, resident.latitude], ring);
+  });
+}
+
 function formatAdvisoryMessage(title: string, message: string) {
   return {
     markdown: `**${title}**\n\n${message}`,
@@ -106,6 +212,10 @@ export async function createAdvisoryAction(
 
   try {
     const supabase = await createClient();
+    const targetPolygon = parseTargetPolygon(formData.get('targetPolygon'));
+    const targetResidentIds = parseTargetResidentIds(
+      formData.get('targetResidentIds')
+    );
 
     if (normalizedIntent === 'save_template') {
       const templateNameValidation = advisoryTemplateNameSchema.safeParse(
@@ -178,17 +288,67 @@ export async function createAdvisoryAction(
       throw insertAdvisoryError;
     }
 
-    const { data: residents, error: residentsError } = await adminClient
-      .from('residents')
-      .select('id, thread_id, platform');
+    let residentTargets: ResidentTarget[] = [];
 
-    if (residentsError) {
-      throw residentsError;
+    if (targetResidentIds) {
+      if (targetResidentIds.length === 0) {
+        residentTargets = [];
+      } else {
+        const residentsResult = await adminClient
+          .from('residents')
+          .select('id, thread_id, platform')
+          .in('id', targetResidentIds);
+
+        if (residentsResult.error) {
+          throw residentsResult.error;
+        }
+
+        residentTargets = (residentsResult.data ?? []) as ResidentTarget[];
+      }
+    } else if (targetPolygon) {
+      const residentsResult = await adminClient.rpc(
+        'residents_within_polygon',
+        {
+          target_polygon: targetPolygon,
+        }
+      );
+
+      if (residentsResult.error) {
+        console.warn(
+          'Polygon RPC failed; falling back to in-memory resident filtering.',
+          residentsResult.error
+        );
+
+        const fallbackResult = await adminClient
+          .from('residents_with_coords')
+          .select('id, thread_id, platform, longitude, latitude');
+
+        if (fallbackResult.error) {
+          throw fallbackResult.error;
+        }
+
+        residentTargets = filterResidentsWithinPolygon(
+          (fallbackResult.data ?? []) as ResidentTargetWithCoords[],
+          targetPolygon
+        );
+      } else {
+        residentTargets = (residentsResult.data ?? []) as ResidentTarget[];
+      }
+    } else {
+      const residentsResult = await adminClient
+        .from('residents')
+        .select('id, thread_id, platform');
+
+      if (residentsResult.error) {
+        throw residentsResult.error;
+      }
+
+      residentTargets = (residentsResult.data ?? []) as ResidentTarget[];
     }
 
     const deliveryResults = await Promise.all(
-      (residents ?? []).map((resident) =>
-        sendAdvisoryToResident(resident as ResidentTarget, {
+      residentTargets.map((resident) =>
+        sendAdvisoryToResident(resident, {
           title: validatedFields.data.title,
           message: validatedFields.data.message,
         })

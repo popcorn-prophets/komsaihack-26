@@ -1,4 +1,6 @@
 import type { BotThread } from '@/lib/bot/types';
+import type { FlowThreadState } from '../flows/flow-types';
+import { translate } from '../i18n';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
@@ -114,9 +116,15 @@ export class TextInputHandler extends BaseStepHandler {
 
     const prompt = step.prompt || 'Please provide input';
 
+    // Get locale from thread state if available
+    const state = (await thread.state) as FlowThreadState | null;
+    const locale = state?.locale;
+
+    const content = translate('step.text.content', locale);
+
     await renderCard(thread, {
       title: prompt,
-      content: 'Please send your response.',
+      content,
     });
   }
 }

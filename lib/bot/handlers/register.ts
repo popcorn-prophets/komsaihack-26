@@ -1,7 +1,14 @@
 import type { BotInstance } from '@/lib/bot/chat';
 import { flowEngine } from '@/lib/bot/flows/flow-engine';
+import { getThreadLocaleFromState } from '@/lib/bot/flows/flow-locale';
 import { flowRegistry } from '@/lib/bot/flows/flow-registry';
 import type { Flow, FlowThreadState } from '@/lib/bot/flows/flow-types';
+import {
+  DEFAULT_LOCALE,
+  resolveResidentLocale,
+  translate,
+} from '@/lib/bot/i18n';
+import type { ResidentLocale } from '@/lib/bot/i18n/types';
 import type { BotThread } from '@/lib/bot/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -32,14 +39,29 @@ export function registerMessageHandlers(bot: BotInstance) {
     return data;
   }
 
-  function buildAvailableCommandHint(): string {
+  function buildAvailableCommandHint(
+    locale: ResidentLocale = DEFAULT_LOCALE
+  ): string {
     const commands = flowRegistry.getStartCommands();
 
     if (commands.length === 0) {
-      return 'Send a supported command to begin.';
+      return translate('handler.flow_complete.hint', locale);
     }
 
-    return `Send "${commands.join('", "')}" to begin.`;
+    return translate('handler.start.hint', locale, {
+      commands: commands.join('", "'),
+    });
+  }
+
+  async function resolveThreadLocale(
+    thread: BotThread
+  ): Promise<ResidentLocale> {
+    const cachedLocale = await getThreadLocaleFromState(thread);
+    if (cachedLocale) {
+      return cachedLocale;
+    }
+
+    return resolveResidentLocale(thread.id);
   }
 
   async function startFlow(
@@ -48,16 +70,22 @@ export function registerMessageHandlers(bot: BotInstance) {
     context: { hasResident: boolean },
     visitedFlowIds: Set<string> = new Set()
   ): Promise<boolean> {
+    const locale = await resolveThreadLocale(thread);
+
     if (visitedFlowIds.has(flow.id)) {
       console.error(`Detected cyclic flow fallback while starting ${flow.id}`);
-      await thread.post('An error occurred. Please try again.');
+      await thread.post(translate('error.flow.cyclic', locale));
       return false;
     }
 
     visitedFlowIds.add(flow.id);
 
     if (flow.start?.requiresResident && !context.hasResident) {
-      if (flow.start.missingResidentMessage) {
+      if (flow.start.missingResidentMessageKey) {
+        await thread.post(
+          translate(flow.start.missingResidentMessageKey, locale)
+        );
+      } else if (flow.start.missingResidentMessage) {
         await thread.post(flow.start.missingResidentMessage);
       }
 
@@ -69,7 +97,7 @@ export function registerMessageHandlers(bot: BotInstance) {
       const fallbackFlow = flowRegistry.get(fallbackFlowId);
       if (!fallbackFlow) {
         console.error(`Fallback flow not registered: ${fallbackFlowId}`);
-        await thread.post('An error occurred. Please try again.');
+        await thread.post(translate('error.flow.start_error', locale));
         return false;
       }
 
@@ -81,7 +109,9 @@ export function registerMessageHandlers(bot: BotInstance) {
     }
 
     const initialState: FlowThreadState = flowEngine.createInitialState(
-      flow.id
+      flow.id,
+      1,
+      locale
     );
     await thread.setState(initialState);
     await flowEngine.renderCurrentStep(thread, flow, initialState);
@@ -127,14 +157,14 @@ export function registerMessageHandlers(bot: BotInstance) {
   } | null> {
     const state = (await thread.state) as FlowThreadState | null;
     if (!state) {
-      await thread.post('An error occurred. Please start over.');
+      await thread.post(translate('error.flow.invalid_step'));
       return null;
     }
 
     const flow = flowRegistry.get(state.flowId);
     if (!flow) {
       console.error(`Flow not registered: ${state.flowId}`);
-      await thread.post('An error occurred. Please try again.');
+      await thread.post(translate('handler.error', state.locale));
       return null;
     }
 
@@ -222,7 +252,9 @@ export function registerMessageHandlers(bot: BotInstance) {
     await ensureSelectionStepOptions(thread, flow, state);
 
     if (flowEngine.isFlowComplete(flow, state)) {
-      await thread.post('The flow is already complete.');
+      await thread.post(
+        translate('handler.flow_already_complete', state.locale)
+      );
       return;
     }
 
@@ -236,7 +268,12 @@ export function registerMessageHandlers(bot: BotInstance) {
       }
     }
 
-    const result = await flowEngine.handleStepInput(flow, state, input);
+    const result = await flowEngine.handleStepInput(
+      flow,
+      state,
+      thread as BotThread,
+      input
+    );
 
     if (result.response) {
       await thread.post(result.response);
@@ -264,11 +301,18 @@ export function registerMessageHandlers(bot: BotInstance) {
         return;
       }
 
-      await thread.post(hasResident ? 'Welcome back!' : 'Welcome!');
-      await thread.post(buildAvailableCommandHint());
+      // Resolve locale for the resident
+      const locale = await resolveThreadLocale(thread as BotThread);
+
+      const welcomeMsg = hasResident
+        ? translate('handler.start.welcome_back', locale)
+        : translate('handler.start.welcome', locale);
+
+      await thread.post(welcomeMsg);
+      await thread.post(buildAvailableCommandHint(locale));
     } catch (error) {
       console.error('Error in onNewMention handler:', error);
-      await thread.post('An unexpected error occurred. Please try again.');
+      await thread.post(translate('error.unexpected'));
     }
   });
 
@@ -281,7 +325,8 @@ export function registerMessageHandlers(bot: BotInstance) {
 
       // Allow user to stop the bot
       if (normalizeText(userText) === 'stop') {
-        await thread.post('Goodbye!');
+        const locale = await resolveThreadLocale(thread as BotThread);
+        await thread.post(translate('handler.stop', locale));
         await thread.unsubscribe();
         return;
       }
@@ -300,25 +345,26 @@ export function registerMessageHandlers(bot: BotInstance) {
       const state = (await thread.state) as FlowThreadState | null;
 
       if (!state) {
-        await thread.post(buildAvailableCommandHint());
+        const locale = await resolveThreadLocale(thread as BotThread);
+        await thread.post(buildAvailableCommandHint(locale));
         return;
       }
 
       const flow = flowRegistry.get(state.flowId);
       if (!flow) {
-        await thread.post('An error occurred. Please try again.');
+        await thread.post(translate('handler.error', state.locale));
         return;
       }
 
       if (flowEngine.isFlowComplete(flow, state)) {
-        await thread.post(buildAvailableCommandHint());
+        await thread.post(buildAvailableCommandHint(state.locale));
         return;
       }
 
       await processFlowInput(thread as BotThread, message);
     } catch (error) {
       console.error('Error processing message:', error);
-      await thread.post('An error occurred. Please try again.');
+      await thread.post(translate('handler.error'));
     }
   });
 
@@ -337,7 +383,8 @@ export function registerMessageHandlers(bot: BotInstance) {
       });
     } catch (error) {
       console.error('Error handling action event:', error);
-      await event.thread.post('An error occurred. Please try again.');
+      const locale = await resolveThreadLocale(event.thread as BotThread);
+      await event.thread.post(translate('handler.error', locale));
     }
   });
 }

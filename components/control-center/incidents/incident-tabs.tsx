@@ -15,7 +15,7 @@ export function IncidentTabs() {
 
   React.useEffect(() => {
     const loadInitialIncident = async () => {
-      const incidents = await fetchIncidents(1);
+      const incidents = await fetchIncidents(undefined, undefined, 1);
       if (incidents && incidents.length > 0) {
         setSelectedIncidentID(incidents[0].id);
       }
@@ -35,13 +35,13 @@ export function IncidentTabs() {
       </TabsList>
       <TabsContent value="reports" className="flex flex-row w-full gap-4">
         <IncidentCard onIncidentSelect={handleOnIncidentClick} />
-        <ChatBox />
+        <ChatBox incidentId={selectedIncidentID} />
         <ReportContainer incident={selectedIncidentID} />
       </TabsContent>
       <TabsContent value="kanban" className="flex flex-row w-full gap-4">
         <KanbanContent title="New" />
         <KanbanContent title="Validated" />
-        <KanbanContent title="In Progress" />
+        <KanbanContent title="In_Progress" />
         <KanbanContent title="Resolved" />
         <KanbanContent title="Dismissed" />
       </TabsContent>

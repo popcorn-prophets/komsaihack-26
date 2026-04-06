@@ -1,4 +1,6 @@
 import type { BotThread } from '@/lib/bot/types';
+import type { FlowThreadState } from '../flows/flow-types';
+import { translate } from '../i18n';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
@@ -38,7 +40,10 @@ function resolveInteractiveDecision(value: string): string | undefined {
 export class ConfirmationHandler extends BaseStepHandler {
   type = 'confirmation' as const;
 
-  parse(data: unknown, step: Step): { value: unknown } | { error: string } {
+  parse(
+    data: unknown,
+    step: Step
+  ): { value: unknown } | { error: string } {
     const confirmation = step.confirmation;
 
     if (!confirmation || confirmation.mode !== 'interactive') {
@@ -67,20 +72,23 @@ export class ConfirmationHandler extends BaseStepHandler {
 
   async render(thread: BotThread, step: Step): Promise<void> {
     const confirmation = step.confirmation;
+    const state = (await thread.state) as FlowThreadState | null;
+    const locale = state?.locale;
 
     if (!confirmation || confirmation.mode !== 'interactive') {
       const renderCard = await renderCardPromise;
-      const prompt = step.prompt || 'Thank you!';
+      const prompt = step.prompt || translate('step.confirmation.prompt', locale);
+      const content = step.content || translate('step.confirmation.message', locale);
 
       await renderCard(thread, {
         title: prompt,
-        content: 'Your information has been saved successfully.',
+        content,
       });
       return;
     }
 
     const renderSelectionCard = await renderSelectionCardPromise;
-    const prompt = step.prompt || 'Please review your response';
+    const prompt = step.prompt || translate('step.confirmation.prompt', locale);
     const confirmLabel = confirmation.confirmLabel ?? 'Confirm and Submit';
     const cancelLabel = confirmation.cancelLabel ?? 'Cancel';
     const editLabel = confirmation.editLabel ?? 'Edit';

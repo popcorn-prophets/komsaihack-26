@@ -11,6 +11,9 @@ export function createBot(): BotInstance {
   return new Chat<typeof adapters, FlowThreadState>({
     userName: 'project_hermes_bot',
     adapters,
+    messageHistory: {
+      maxMessages: 100,
+    },
     state: state,
   });
 }

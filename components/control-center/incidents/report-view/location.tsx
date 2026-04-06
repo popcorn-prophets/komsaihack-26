@@ -19,8 +19,10 @@ interface ParsedCoordinates {
   long: number | null;
 }
 
+// Moved outside the component to ensure a stable reference and fix ESLint warning
+const DEFAULT_LOCATION = [10.6499974, 122.2333324];
+
 export function Location({ incidentID }: MapComponentProps) {
-  const defaultLocation: number[] = [10.6499974, 122.2333324];
   const mapRef = React.useRef<MapRef | null>(null);
   const [parsedCoord, setParsedCoord] = React.useState<ParsedCoordinates>({
     lat: null,
@@ -28,7 +30,7 @@ export function Location({ incidentID }: MapComponentProps) {
   });
 
   React.useEffect(() => {
-    if (!incidentID) return; // Skip if no ID
+    if (!incidentID) return;
 
     const markIncidentLoc = async () => {
       try {
@@ -62,9 +64,12 @@ export function Location({ incidentID }: MapComponentProps) {
 
     const hasValidCoords =
       parsedCoord.lat !== null && parsedCoord.long !== null;
+
+    // Using index 0 and 1 from the stable DEFAULT_LOCATION constant
     const center: [number, number] = hasValidCoords
       ? [parsedCoord.long!, parsedCoord.lat!]
-      : [defaultLocation[1], defaultLocation[0]];
+      : [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]];
+
     const zoom = hasValidCoords ? 15 : 10;
 
     mapRef.current.flyTo({
@@ -72,7 +77,7 @@ export function Location({ incidentID }: MapComponentProps) {
       zoom,
       duration: 1500,
     });
-  }, [parsedCoord]);
+  }, [parsedCoord]); // defaultLocation removed from here as it is now static
 
   function zoomToMarker() {
     if (
@@ -92,11 +97,10 @@ export function Location({ incidentID }: MapComponentProps) {
 
   return (
     <Map ref={mapRef}>
-      {/*ternary operator used for first time loading behavior*/}
       {parsedCoord.lat !== null && parsedCoord.long !== null && (
         <MapMarker
-          latitude={parsedCoord.lat ? parsedCoord.lat : defaultLocation[1]}
-          longitude={parsedCoord.long ? parsedCoord.long : defaultLocation[0]}
+          latitude={parsedCoord.lat}
+          longitude={parsedCoord.long}
           onClick={zoomToMarker}
         >
           <MarkerContent />

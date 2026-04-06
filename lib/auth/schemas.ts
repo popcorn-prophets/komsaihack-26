@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { normalizeEmail } from './utils';
+import { normalizeEmail } from './normalization';
 
 export const passwordSchema = z
   .string()
@@ -80,3 +80,7 @@ export const acceptInviteSchema = z
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
+
+export const updateOwnProfileSchema = z.object({
+  fullName: optionalNameSchema,
+});

@@ -1,0 +1,26 @@
+import { useTheme } from 'next-themes';
+
+export function useThemeTransition() {
+  const { setTheme, resolvedTheme } = useTheme();
+
+  const toggleTheme = (e: React.MouseEvent) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+
+    document.documentElement.style.setProperty('--click-x', `${x}%`);
+    document.documentElement.style.setProperty('--click-y', `${y}%`);
+
+    const nextTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+
+    if (!document.startViewTransition) {
+      setTheme(nextTheme);
+      return;
+    }
+
+    document.startViewTransition(() => {
+      setTheme(nextTheme);
+    });
+  };
+
+  return { toggleTheme, resolvedTheme };
+}
