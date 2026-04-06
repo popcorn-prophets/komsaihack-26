@@ -349,33 +349,6 @@ export type Database = {
       };
     };
     Views: {
-      incidents_with_coords: {
-        Row: {
-          id: string | null;
-          latitude: number | null;
-          location_description: string | null;
-          longitude: number | null;
-          severity: Database['public']['Enums']['incident_severity'] | null;
-          status: Database['public']['Enums']['incident_status'] | null;
-        };
-        Insert: {
-          id?: string | null;
-          latitude?: never;
-          location_description?: string | null;
-          longitude?: never;
-          severity?: Database['public']['Enums']['incident_severity'] | null;
-          status?: Database['public']['Enums']['incident_status'] | null;
-        };
-        Update: {
-          id?: string | null;
-          latitude?: never;
-          location_description?: string | null;
-          longitude?: never;
-          severity?: Database['public']['Enums']['incident_severity'] | null;
-          status?: Database['public']['Enums']['incident_status'] | null;
-        };
-        Relationships: [];
-      };
       incidents_with_details: {
         Row: {
           created_at: string | null;
