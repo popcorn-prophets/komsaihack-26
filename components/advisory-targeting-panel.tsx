@@ -126,8 +126,8 @@ export function AdvisoryTargetingPanel({
                   <div
                     className={
                       isSelected
-                        ? 'size-3 rounded-full border-2 border-background bg-primary shadow-lg shadow-primary/30'
-                        : 'size-2.5 rounded-full border-2 border-background bg-muted-foreground/70 shadow-sm'
+                        ? 'size-3 rounded-full border-2 border-amber-100 bg-amber-500 shadow-lg shadow-amber-500/40'
+                        : 'size-2.5 rounded-full border-2 border-amber-50 bg-amber-300 shadow-sm shadow-amber-400/40'
                     }
                   />
                 </MarkerContent>
@@ -135,8 +135,8 @@ export function AdvisoryTargetingPanel({
                   position="top"
                   className={
                     isSelected
-                      ? 'text-primary'
-                      : 'text-muted-foreground opacity-75'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-amber-700/80 dark:text-amber-300/80'
                   }
                 >
                   {resident.name ?? 'Resident'}
@@ -145,8 +145,26 @@ export function AdvisoryTargetingPanel({
             );
           })}
           <MapPolygonDraw
-            onChange={(features) => {
-              setPolygonCoordinates(getPolygonCoordinates(features));
+            polygonModeOptions={{
+              styles: {
+                fillColor: '#f59e0b',
+                fillOpacity: 0.25,
+                outlineColor: '#ea580c',
+                outlineOpacity: 0.95,
+                outlineWidth: 2,
+                closingPointColor: '#f59e0b',
+                closingPointWidth: 4,
+                closingPointOutlineColor: '#ea580c',
+                closingPointOutlineWidth: 2,
+              },
+            }}
+            selectModeOptions={{
+              styles: {
+                selectedPolygonColor: '#f59e0b',
+                selectedPolygonFillOpacity: 0.3,
+                selectedPolygonOutlineColor: '#c2410c',
+                selectedPolygonOutlineWidth: 2,
+              },
             }}
           />
           <MapControls showZoom showCompass />
