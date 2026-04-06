@@ -46,6 +46,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -61,8 +62,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { formatDateTime } from '@/lib/date';
 import { moveIncidentStatusAction } from '@/lib/incidents/actions';
 import {
@@ -77,7 +78,6 @@ import {
 } from '@/lib/incidents/shared';
 import { fetchIncidentBoardEntries } from '@/lib/supabase/reports';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 type IncidentKanbanBoardProps = {
   onIncidentSelect?: (incidentId: string) => void;
@@ -415,7 +415,7 @@ function IncidentDetailsContent({
 
         <div className="grid gap-3 rounded-xl border bg-muted/30 p-4">
           <div className="flex items-start gap-3">
-            <UserRoundIcon className="mt-0.5 text-muted-foreground" />
+            <UserRoundIcon className="h-8 w-8mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Reporter
@@ -424,7 +424,7 @@ function IncidentDetailsContent({
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MapPinIcon className="mt-0.5 text-muted-foreground" />
+            <MapPinIcon className="h-9 w-9 mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Location
@@ -435,7 +435,7 @@ function IncidentDetailsContent({
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MessageSquareTextIcon className="mt-0.5 text-muted-foreground" />
+            <MessageSquareTextIcon className="h-6 w-6 mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Summary
@@ -908,10 +908,9 @@ export default function IncidentKanbanBoard({
           <Drawer open={detailsOpen} onOpenChange={setDetailsOpen}>
             <DrawerContent className="max-h-[85vh]">
               <DrawerHeader>
-                <DrawerTitle>Incident quick details</DrawerTitle>
+                <DrawerTitle>Incident Details</DrawerTitle>
                 <DrawerDescription>
-                  Review the incident and move it to another stage without
-                  leaving the board.
+                  Review the incident and move it to another stage
                 </DrawerDescription>
               </DrawerHeader>
               <IncidentDetailsContent
@@ -929,8 +928,7 @@ export default function IncidentKanbanBoard({
               <SheetHeader>
                 <SheetTitle>Incident quick details</SheetTitle>
                 <SheetDescription>
-                  Review the incident and move it to another stage without
-                  leaving the board.
+                  Review the incident and move it to another stage
                 </SheetDescription>
               </SheetHeader>
               <IncidentDetailsContent
