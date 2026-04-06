@@ -353,7 +353,7 @@ export type Database = {
         Row: {
           id: string | null;
           latitude: number | null;
-          location_description: string | null;  
+          location_description: string | null;
           longitude: number | null;
           severity: Database['public']['Enums']['incident_severity'] | null;
           status: Database['public']['Enums']['incident_status'] | null;
@@ -375,6 +375,7 @@ export type Database = {
           status?: Database['public']['Enums']['incident_status'] | null;
         };
         Relationships: [];
+      };
       incidents_with_details: {
         Row: {
           created_at: string | null;
