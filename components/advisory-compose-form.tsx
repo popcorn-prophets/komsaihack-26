@@ -99,8 +99,8 @@ export function AdvisoryComposeForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Compose advisory</CardTitle>
-        <CardDescription>
+        <CardTitle>Compose Advisory</CardTitle>
+        <CardDescription className="text-xs">
           Send an advisory to residents inside the selected target area.
         </CardDescription>
       </CardHeader>

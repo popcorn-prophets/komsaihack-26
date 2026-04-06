@@ -12,7 +12,6 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
-  ArrowRight,
   BellRing,
   Bot,
   FileText,
@@ -340,8 +339,7 @@ export function HelpGuide() {
 
             <div className="flex flex-col gap-4">
               <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-balance lg:text-5xl">
-                How HERMES works from first resident report to coordinated
-                response.
+                How HERMES works
               </h1>
               <p className="max-w-3xl text-base leading-7 text-muted-foreground md:text-lg">
                 HERMES is built as a complete disaster communication product:
@@ -370,34 +368,18 @@ export function HelpGuide() {
                 field.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-5 py-6">
-              <div className="grid gap-3 sm:grid-cols-2">
+            <CardContent className="h-full flex flex-col gap-5 py-6">
+              <div className="f-full grid gap-3 sm:grid-cols-2">
                 {quickActions.map((action) => (
                   <Button
                     key={action.href}
                     asChild
                     variant="outline"
-                    className="justify-between"
+                    className="text-xs flex flex-wrap justify-between"
                   >
-                    <Link href={action.href}>
-                      {action.label}
-                      <ArrowRight className="size-4" />
-                    </Link>
+                    <Link href={action.href}>{action.label}</Link>
                   </Button>
                 ))}
-              </div>
-
-              <div className="rounded-2xl border border-border/70 bg-muted/40 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Globe2 className="size-4 text-muted-foreground" />
-                  Completed-product viewpoint
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  This guide documents the intended end-state of HERMES:
-                  improved chatbot UX, web and PWA reporting, multilingual
-                  operations, real-time feed management, and resident-facing
-                  status visibility.
-                </p>
               </div>
             </CardContent>
           </Card>

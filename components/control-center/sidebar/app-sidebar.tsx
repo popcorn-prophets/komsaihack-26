@@ -2,9 +2,8 @@
 
 import {
   IconAddressBook,
-  IconChartBar,
-  IconDatabaseExport,
   IconDashboard,
+  IconDatabaseExport,
   IconHelp,
   IconListDetails,
   IconMap,
@@ -27,6 +26,7 @@ import {
 } from '@/components/ui/sidebar';
 import type { AuthUser } from '@/lib/auth/types';
 import { canAccessIncidentExport } from '@/lib/incidents/export-config';
+import { Megaphone } from 'lucide-react';
 import Logo from '../../brand/logo';
 
 export function AppSidebar({
@@ -53,7 +53,7 @@ export function AppSidebar({
     {
       title: 'Advisories',
       url: '/control-center/advisories',
-      icon: IconChartBar,
+      icon: Megaphone,
     },
     {
       title: 'Map',

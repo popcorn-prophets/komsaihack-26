@@ -35,8 +35,6 @@ function SummaryCard({
 
 export function ResidentsDirectorySummary({
   totalResidents,
-  telegramCount,
-  messengerCount,
   languageCounts,
   unknownLanguageCount,
 }: ResidentDirectoryStats) {
@@ -53,16 +51,6 @@ export function ResidentsDirectorySummary({
         label="Total residents"
         value={totalResidents.toString()}
         description="All onboarded resident profiles in the control center, including incomplete records."
-      />
-      <SummaryCard
-        label="Telegram"
-        value={telegramCount.toString()}
-        description="Residents connected through the Telegram adapter."
-      />
-      <SummaryCard
-        label="Messenger"
-        value={messengerCount.toString()}
-        description="Residents connected through the Messenger adapter."
       />
       <SummaryCard
         label="Language split"

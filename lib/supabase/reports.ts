@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/client';
 import {
   toIncidentBoardEntry,
   type IncidentBoardEntry,
 } from '@/lib/incidents/shared';
+import { createClient } from '@/lib/supabase/client';
 import type { Tables } from '@/types/supabase';
 
 // Initialize Supabase client
@@ -288,6 +288,7 @@ export async function updateIncidentEntry(incident: Incident) {
     const { error } = await supabase
       .from('incidents')
       .update({
+        incident_type_id: incident.incident_type_id,
         location_description: incident.location_description,
         severity: incident.severity,
         description: incident.description,

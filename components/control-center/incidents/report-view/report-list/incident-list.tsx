@@ -1,7 +1,6 @@
 'use client';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { fetchIncidents, type Incident } from '@/lib/supabase/reports';
 import * as React from 'react';
 import IncidentEntry from './incident-entry';
@@ -74,7 +73,6 @@ export function IncidentList({ onIncidentSelect, sort }: IncidentListProps) {
               isSelected={selectedIncident === incident.id}
               onClick={handleIncidentClick}
             />
-            <Separator className="my-2" />
           </div>
         ))}
       </div>

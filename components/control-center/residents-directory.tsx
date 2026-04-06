@@ -1,22 +1,16 @@
 'use client';
 
-import { useDeferredValue, useState } from 'react';
 import { IconAddressBook } from '@tabler/icons-react';
+import { useDeferredValue, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { ResidentDirectoryRow } from '@/lib/residents/types';
 
 import { ResidentsDirectoryFilters } from './residents-directory-filters';
 import { ResidentDetailSheet } from './residents-directory-sheet';
-import { ResidentsDataTable } from './residents-directory-table';
 import { ResidentsDirectorySummary } from './residents-directory-summary';
+import { ResidentsDataTable } from './residents-directory-table';
 import {
   INITIAL_FILTERS,
   filterResidentDirectory,
@@ -52,28 +46,15 @@ export function ResidentsDirectory({
         <div className="flex flex-col gap-2">
           <Badge variant="outline" className="gap-1">
             <IconAddressBook />
-            Residents directory
+            Residents Directory
           </Badge>
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-semibold tracking-tight">Residents</h1>
-            <p className="max-w-3xl text-sm text-muted-foreground">
-              Browse onboarded residents, review platform identities, and
-              inspect saved location data for control-center operations.
-            </p>
-          </div>
         </div>
 
         <ResidentsDirectorySummary {...residentStats} />
 
         <Card>
           <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col gap-1">
-              <CardTitle>Resident directory</CardTitle>
-              <CardDescription>
-                Search by resident name, platform identity, or thread reference.
-                Filter the list by messaging platform and language.
-              </CardDescription>
-            </div>
+            <div className="flex flex-col gap-1"></div>
             <ResidentsDirectoryFilters
               filters={filters}
               onFiltersChange={setFilters}

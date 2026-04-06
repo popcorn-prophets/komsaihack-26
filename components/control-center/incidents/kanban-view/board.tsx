@@ -28,6 +28,11 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
+import {
+  INCIDENT_STATUS_DOT_CLASS,
+  IncidentSeverityBadge,
+  IncidentStatusBadge,
+} from '@/components/control-center/incidents/incident-badges';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,6 +51,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -62,6 +68,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { formatDateTime } from '@/lib/date';
 import { moveIncidentStatusAction } from '@/lib/incidents/actions';
 import {
@@ -76,7 +83,6 @@ import {
 } from '@/lib/incidents/shared';
 import { fetchIncidentBoardEntries } from '@/lib/supabase/reports';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 type IncidentKanbanBoardProps = {
   onIncidentSelect?: (incidentId: string) => void;
@@ -106,29 +112,6 @@ type IncidentCardProps = {
   isDragDisabled?: boolean;
   isDraggingOverlay?: boolean;
   isMovePending?: boolean;
-};
-
-const STATUS_COLUMN_DOT_CLASS: Record<IncidentStatus, string> = {
-  new: 'bg-chart-4',
-  validated: 'bg-chart-2',
-  in_progress: 'bg-chart-1',
-  resolved: 'bg-chart-5',
-  dismissed: 'bg-destructive',
-};
-
-const SEVERITY_DOT_CLASS: Record<IncidentSeverity, string> = {
-  low: 'bg-muted-foreground',
-  moderate: 'bg-chart-4',
-  high: 'bg-chart-1',
-  critical: 'bg-destructive',
-};
-
-const STATUS_BADGE_CLASS: Record<IncidentStatus, string> = {
-  new: 'border-chart-4/30 bg-chart-4/10 text-foreground',
-  validated: 'border-chart-2/30 bg-chart-2/10 text-foreground',
-  in_progress: 'border-chart-1/30 bg-chart-1/10 text-foreground',
-  resolved: 'border-chart-5/30 bg-chart-5/10 text-foreground',
-  dismissed: 'border-destructive/30 bg-destructive/10 text-destructive',
 };
 
 function getIncidentSnippet(incident: IncidentBoardEntry) {
@@ -180,31 +163,6 @@ function matchesIncidentFilters(
     .includes(normalizedSearch);
 }
 
-function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn('gap-1.5 border', STATUS_BADGE_CLASS[status])}
-    >
-      <span
-        className={cn('size-1.5 rounded-full', STATUS_COLUMN_DOT_CLASS[status])}
-      />
-      {formatIncidentStatusLabel(status)}
-    </Badge>
-  );
-}
-
-function IncidentSeverityBadge({ severity }: { severity: IncidentSeverity }) {
-  return (
-    <Badge variant="outline" className="gap-1.5">
-      <span
-        className={cn('size-1.5 rounded-full', SEVERITY_DOT_CLASS[severity])}
-      />
-      {formatIncidentSeverityLabel(severity)}
-    </Badge>
-  );
-}
-
 function IncidentColumn({
   status,
   incidents,
@@ -231,7 +189,7 @@ function IncidentColumn({
           <span
             className={cn(
               'size-2 rounded-full',
-              STATUS_COLUMN_DOT_CLASS[status]
+              INCIDENT_STATUS_DOT_CLASS[status]
             )}
           />
           <div className="min-w-0">
@@ -414,7 +372,7 @@ function IncidentDetailsContent({
 
         <div className="grid gap-3 rounded-xl border bg-muted/30 p-4">
           <div className="flex items-start gap-3">
-            <UserRoundIcon className="mt-0.5 text-muted-foreground" />
+            <UserRoundIcon className="h-8 w-8mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Reporter
@@ -423,7 +381,7 @@ function IncidentDetailsContent({
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MapPinIcon className="mt-0.5 text-muted-foreground" />
+            <MapPinIcon className="h-9 w-9 mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Location
@@ -434,7 +392,7 @@ function IncidentDetailsContent({
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MessageSquareTextIcon className="mt-0.5 text-muted-foreground" />
+            <MessageSquareTextIcon className="h-6 w-6 mt-0.5 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Summary
@@ -876,17 +834,21 @@ export default function IncidentKanbanBoard({
               />
             </div>
           ) : (
-            <div className="grid min-h-0 flex-1 grid-cols-5 gap-2 pb-1 xl:gap-4">
-              {INCIDENT_STATUSES.map((status) => (
-                <IncidentColumn
-                  key={status}
-                  status={status}
-                  incidents={groupedIncidents[status]}
-                  pendingMoveId={pendingMoveId}
-                  onOpenIncident={openIncident}
-                />
-              ))}
-            </div>
+            <ScrollArea className="min-h-0 flex-1 pb-1">
+              <div className="flex h-full min-h-0 w-max min-w-full gap-2 pr-1 xl:gap-4">
+                {INCIDENT_STATUSES.map((status) => (
+                  <IncidentColumn
+                    key={status}
+                    status={status}
+                    incidents={groupedIncidents[status]}
+                    pendingMoveId={pendingMoveId}
+                    onOpenIncident={openIncident}
+                    className="w-80 min-w-80"
+                  />
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
           <DragOverlay>
             {activeIncident ? (
@@ -903,10 +865,9 @@ export default function IncidentKanbanBoard({
           <Drawer open={detailsOpen} onOpenChange={setDetailsOpen}>
             <DrawerContent className="max-h-[85vh]">
               <DrawerHeader>
-                <DrawerTitle>Incident quick details</DrawerTitle>
+                <DrawerTitle>Incident Details</DrawerTitle>
                 <DrawerDescription>
-                  Review the incident and move it to another stage without
-                  leaving the board.
+                  Review the incident and move it to another stage
                 </DrawerDescription>
               </DrawerHeader>
               <IncidentDetailsContent
@@ -924,8 +885,7 @@ export default function IncidentKanbanBoard({
               <SheetHeader>
                 <SheetTitle>Incident quick details</SheetTitle>
                 <SheetDescription>
-                  Review the incident and move it to another stage without
-                  leaving the board.
+                  Review the incident and move it to another stage
                 </SheetDescription>
               </SheetHeader>
               <IncidentDetailsContent

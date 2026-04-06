@@ -69,11 +69,11 @@ export function ReportTable<TData, TValue>({
 
   return (
     <div>
-      <div className="">
+      <div className="flex items-center justify-between w-full gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Column Visibility
+              Columns
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -157,6 +157,7 @@ export function ReportTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
       {/* Show pagination only if data exceeds 20 rows */}
       {data.length > 20 && (
         <div className="flex items-center justify-end space-x-2 py-4">

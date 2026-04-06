@@ -27,7 +27,7 @@ function SearchField({
       <Input
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
-        placeholder="Search residents by name, platform, or thread"
+        placeholder="Search by name, platform, or thread"
         className="pl-9"
       />
     </div>

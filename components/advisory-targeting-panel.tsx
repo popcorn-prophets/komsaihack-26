@@ -205,8 +205,12 @@ export function AdvisoryTargetingPanel({
 
   return (
     <div className="flex flex-col gap-6">
+      <p className="text-xs text-muted-foreground">
+        Draw a shape to select residents to target.
+      </p>
+
       <Card className="h-60 overflow-hidden p-0">
-        <Map ref={mapRef} center={[121.0533, 14.6512]} zoom={11}>
+        <Map ref={mapRef} zoom={11}>
           {residentsWithCoordinates.map((resident) => {
             const isSelected = selectedResidentIds.has(resident.id);
 
@@ -250,7 +254,13 @@ export function AdvisoryTargetingPanel({
             selectModeOptions={selectModeOptions}
             onChange={handlePolygonChange}
           />
-          <MapControls showZoom showCompass />
+          <MapControls
+            position="bottom-right"
+            showZoom
+            showCompass
+            showLocate
+            showFullscreen
+          />
         </Map>
       </Card>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { type Icon } from '@tabler/icons-react';
+import { type ElementType } from 'react';
 
 import {
   SidebarGroup,
@@ -16,7 +16,7 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon?: Icon;
+    icon?: ElementType;
   }[];
 }) {
   return (

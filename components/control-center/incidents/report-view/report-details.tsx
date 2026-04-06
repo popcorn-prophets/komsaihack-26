@@ -13,20 +13,22 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  fetchIncidentById,
-  fetchIncidentTypeName,
-  fetchResidentName,
-  Incident,
-  updateIncidentEntry,
-} from '@/lib/supabase/reports';
-import {
   formatIncidentSeverityLabel,
   formatIncidentStatusLabel,
   INCIDENT_SEVERITIES,
   INCIDENT_STATUSES,
 } from '@/lib/incidents/shared';
+import {
+  fetchIncidentById,
+  fetchIncidentTypeID,
+  fetchIncidentTypeName,
+  fetchResidentName,
+  Incident,
+  updateIncidentEntry,
+} from '@/lib/supabase/reports';
 import { convertTime, hexToCoordinates } from '@/lib/utils';
 import React from 'react';
+import Location from './location';
 
 interface FormData {
   id: string;
@@ -116,6 +118,11 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             created_at: convertTime(incident.created_at) ?? '',
             updated_at: convertTime(incident.updated_at) ?? '',
           });
+
+          setSelectedIncident({
+            ...incident,
+            incident_name: incidentName ?? '',
+          });
         });
       });
     }
@@ -126,7 +133,6 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     if (incidentID) {
       searchIncidentById(incidentID).then((incident) => {
         retrieveIncidentName(incident);
-        setSelectedIncident(incident);
       });
     }
   }, [incidentID]); // Re-run when incidentID changes
@@ -152,8 +158,13 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
 
   async function updateIncident() {
     if (selectedIncident) {
+      const incidentTypeID =
+        (await fetchIncidentTypeID(formData.incident_name)) ||
+        selectedIncident.incident_type_id;
+
       const updatedIncident: Incident = {
         ...selectedIncident,
+        incident_type_id: incidentTypeID,
         status: formData.status,
         severity: formData.severity,
         location_description: formData.location_description,
@@ -171,6 +182,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     if (selectedIncident) {
       setFormData((prev) => ({
         ...prev,
+        incident_name: selectedIncident.incident_name ?? prev.incident_name,
         status: selectedIncident.status,
         severity: selectedIncident.severity,
         location_description: selectedIncident.location_description ?? '',
@@ -206,7 +218,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             onValueChange={(value) => handleSelectChange('status', value)}
           >
             <SelectTrigger id="formStatus" name="status">
-              <SelectValue placeholder="--Select Severity--" />
+              <SelectValue placeholder="Select Severity" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -227,7 +239,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             name="severity"
           >
             <SelectTrigger id="formSeverity">
-              <SelectValue placeholder="--Select Status--" />
+              <SelectValue placeholder="Select Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -242,9 +254,15 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
         </Field>
         <Field>
           <FieldLabel htmlFor="formIncidentType">Incident Type</FieldLabel>
-          <Select value={formData.incident_name} name="incident_name" disabled>
+          <Select
+            value={formData.incident_name}
+            onValueChange={(value) =>
+              handleSelectChange('incident_name', value)
+            }
+            name="incident_name"
+          >
             <SelectTrigger className="w-full" id="formIncidentType">
-              <SelectValue placeholder="--Select Incident Type--" />
+              <SelectValue placeholder="Select Incident Type" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -256,7 +274,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
                 <SelectItem value="Earthquake">Earthquake</SelectItem>
                 <SelectItem value="Landslide">Landslide</SelectItem>
                 <SelectItem value="Traffic Accident">
-                  Traffic Accidient
+                  Traffic Accident
                 </SelectItem>
                 <SelectItem value="Storm">Storm</SelectItem>
               </SelectGroup>
@@ -269,11 +287,27 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formReportedBy"
             type="text"
             defaultValue={formData.reported_by}
-            placeholder="-- Reported By --"
+            placeholder="Reported By "
             name="reported_by"
             disabled
           />
         </Field>
+        <div className="grid gap-4">
+          <div className="h-72 overflow-hidden rounded-md border lg:h-full lg:min-h-72">
+            <Location incidentID={selectedIncident?.id || ''} />
+          </div>
+          <Field>
+            <FieldLabel htmlFor="formLocationDescription">
+              Location Description
+            </FieldLabel>
+            <Textarea
+              id="formLocationDescription"
+              value={formData.location_description}
+              onChange={handleInputChange}
+              name="location_description"
+            />
+          </Field>
+        </div>
         <Field>
           <FieldLabel htmlFor="formLocation">Location</FieldLabel>
           <Input
@@ -281,17 +315,6 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             type="text"
             defaultValue={formData.location}
             disabled
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="formLocationDescription">
-            Location Description
-          </FieldLabel>
-          <Textarea
-            id="formLocationDescription"
-            value={formData.location_description}
-            onChange={handleInputChange}
-            name="location_description"
           />
         </Field>
         <Field>

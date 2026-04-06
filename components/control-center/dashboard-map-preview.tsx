@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import type { DashboardPayload } from '@/lib/control-center-dashboard';
+import { ExternalLinkIcon } from 'lucide-react';
 
 type DashboardMapPreviewProps = {
   mapMarkers: DashboardPayload['mapMarkers'];
@@ -23,7 +23,6 @@ export function DashboardMapPreview({ mapMarkers }: DashboardMapPreviewProps) {
     <Card>
       <CardHeader>
         <CardTitle>Live Incident Map</CardTitle>
-        <CardDescription>Incident Map view</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="h-80 overflow-hidden rounded-md border">
@@ -39,7 +38,9 @@ export function DashboardMapPreview({ mapMarkers }: DashboardMapPreviewProps) {
           Use the full map page for routing and heatmap details.
         </p>
         <Button asChild size="sm" variant="outline">
-          <Link href="/control-center/map">Open full map</Link>
+          <Link href="/control-center/map">
+            Open full map <ExternalLinkIcon />
+          </Link>
         </Button>
       </CardFooter>
     </Card>
