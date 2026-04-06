@@ -1,6 +1,7 @@
 import type {
   Adapter,
   AdapterPostableMessage,
+  Attachment,
   CardChild,
   CardElement,
   ChatInstance,
@@ -31,10 +32,25 @@ export interface WebChatIncomingPayload {
   actionId?: string;
   actionMessageId?: string;
   eventType?: 'action' | 'message';
+  attachments?: WebChatIncomingAttachment[];
+  location?: WebChatLocationPayload;
   sessionId: string;
-  text: string;
+  text?: string;
   userName?: string;
   value?: string;
+}
+
+export interface WebChatLocationPayload {
+  accuracy?: number;
+  latitude: number;
+  longitude: number;
+}
+
+export interface WebChatIncomingAttachment {
+  data: string;
+  filename?: string;
+  mimeType: string;
+  type: 'audio' | 'file' | 'image';
 }
 
 export interface WebChatCardAction {
@@ -45,6 +61,7 @@ export interface WebChatCardAction {
 }
 
 interface WebChatRawMessage {
+  attachments: Attachment[];
   author: {
     isMe: boolean;
     userId: string;
@@ -52,6 +69,7 @@ interface WebChatRawMessage {
   };
   dateSent: string;
   id: string;
+  location?: WebChatLocationPayload;
   text: string;
   threadId: string;
 }
@@ -74,6 +92,27 @@ function buildAuthor(isMe: boolean, userName: string) {
     userId: isMe ? BOT_USER_ID : `${userName}-user`,
     userName,
   } as const;
+}
+
+function decodeBase64AttachmentData(data: string): Buffer {
+  const base64Payload = data.includes(',') ? data.split(',', 2)[1] : data;
+  return Buffer.from(base64Payload, 'base64');
+}
+
+function toAttachment(attachment: WebChatIncomingAttachment): Attachment {
+  return {
+    data: decodeBase64AttachmentData(attachment.data),
+    name: attachment.filename,
+    mimeType: attachment.mimeType,
+    type: attachment.type,
+  };
+}
+
+function hasMediaContent(
+  attachments: WebChatIncomingAttachment[],
+  location?: WebChatLocationPayload
+): boolean {
+  return attachments.length > 0 || Boolean(location);
 }
 
 function toMessageText(message: AdapterPostableMessage): string {
@@ -179,7 +218,7 @@ function parseThreadId(threadId: string): WebChatThreadId {
 
 function createMessage(raw: WebChatRawMessage): Message<WebChatRawMessage> {
   const data: MessageData<WebChatRawMessage> = {
-    attachments: [],
+    attachments: raw.attachments,
     author: buildAuthor(raw.author.isMe, raw.author.userName),
     formatted: parseMarkdown(raw.text) as FormattedContent,
     id: raw.id,
@@ -267,7 +306,12 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
     }
 
     const sessionId = payload.sessionId?.trim();
-    const text = payload.text?.trim();
+    const text = payload.text?.trim() ?? '';
+    const incomingAttachments = Array.isArray(payload.attachments)
+      ? payload.attachments
+      : [];
+    const attachments = incomingAttachments.map(toAttachment);
+    const location = payload.location;
 
     if (!sessionId) {
       return Response.json(
@@ -328,14 +372,15 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
       return Response.json({ ok: true, threadId });
     }
 
-    if (!text) {
+    if (!text && !hasMediaContent(incomingAttachments, location)) {
       return Response.json(
-        { error: 'text is required for messages.' },
+        { error: 'text, attachments, or location is required for messages.' },
         { status: 400 }
       );
     }
 
     const raw: WebChatRawMessage = {
+      attachments,
       author: {
         isMe: false,
         userId: `${sessionId}-resident`,
@@ -343,6 +388,7 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
       },
       dateSent: new Date().toISOString(),
       id: createMessageId(),
+      location,
       text,
       threadId,
     };
@@ -400,6 +446,7 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
     return {
       id: messageId,
       raw: {
+        attachments: [],
         author: {
           isMe: true,
           userId: BOT_USER_ID,
@@ -407,6 +454,7 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
         },
         dateSent: new Date().toISOString(),
         id: messageId,
+        location: undefined,
         text,
         threadId,
       },
