@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FieldGroup } from '@/components/ui/field';
+import { Card, CardContent } from '@/components/ui/card';
 import * as React from 'react';
 import { IncidentList } from './incident-list';
 import { IncidentSorter } from './incident-sort';
@@ -23,13 +22,8 @@ export default function IncidentsCard({ onIncidentSelect }: IncidentCardProps) {
   };
 
   return (
-    <Card className="flex h-full w-full flex-col">
-      <CardHeader className="border-b">
-        <CardTitle>Reports</CardTitle>
-        <FieldGroup className="flex flex-col">
-          <IncidentSorter onChangeSort={handleSortChange} />
-        </FieldGroup>
-      </CardHeader>
+    <Card className="shadow-none border-0 flex h-full w-full flex-col gap-1">
+      <IncidentSorter onChangeSort={handleSortChange} />
       <CardContent className="min-h-0 flex-1 p-0">
         <IncidentList onIncidentSelect={handleIncidentSelect} sort={sort} />
       </CardContent>

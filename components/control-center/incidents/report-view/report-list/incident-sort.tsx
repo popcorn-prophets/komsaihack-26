@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SortAscIcon, SortDescIcon } from 'lucide-react';
 
 interface IncidentSorterProps {
   onChangeSort?: (sortBy: string, order: string) => void;
@@ -46,7 +47,12 @@ export function IncidentSorter({ onChangeSort }: IncidentSorterProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button ref={triggerRef} variant="outline">
+        <Button ref={triggerRef} variant="ghost" className="w-fit flex gap-0">
+          {sortOrder === 'ascending' ? (
+            <SortAscIcon className="h-4 w-4" />
+          ) : (
+            <SortDescIcon className="h-4 w-4" />
+          )}
           Sort
         </Button>
       </DropdownMenuTrigger>

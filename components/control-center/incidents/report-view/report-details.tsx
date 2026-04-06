@@ -13,20 +13,21 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  formatIncidentSeverityLabel,
+  formatIncidentStatusLabel,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+} from '@/lib/incidents/shared';
+import {
   fetchIncidentById,
   fetchIncidentTypeName,
   fetchResidentName,
   Incident,
   updateIncidentEntry,
 } from '@/lib/supabase/reports';
-import {
-  formatIncidentSeverityLabel,
-  formatIncidentStatusLabel,
-  INCIDENT_SEVERITIES,
-  INCIDENT_STATUSES,
-} from '@/lib/incidents/shared';
 import { convertTime, hexToCoordinates } from '@/lib/utils';
 import React from 'react';
+import Location from './location';
 
 interface FormData {
   id: string;
@@ -206,7 +207,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             onValueChange={(value) => handleSelectChange('status', value)}
           >
             <SelectTrigger id="formStatus" name="status">
-              <SelectValue placeholder="--Select Severity--" />
+              <SelectValue placeholder="Select Severity" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -227,7 +228,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             name="severity"
           >
             <SelectTrigger id="formSeverity">
-              <SelectValue placeholder="--Select Status--" />
+              <SelectValue placeholder="Select Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -244,7 +245,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
           <FieldLabel htmlFor="formIncidentType">Incident Type</FieldLabel>
           <Select value={formData.incident_name} name="incident_name" disabled>
             <SelectTrigger className="w-full" id="formIncidentType">
-              <SelectValue placeholder="--Select Incident Type--" />
+              <SelectValue placeholder="Select Incident Type" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -256,7 +257,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
                 <SelectItem value="Earthquake">Earthquake</SelectItem>
                 <SelectItem value="Landslide">Landslide</SelectItem>
                 <SelectItem value="Traffic Accident">
-                  Traffic Accidient
+                  Traffic Accident
                 </SelectItem>
                 <SelectItem value="Storm">Storm</SelectItem>
               </SelectGroup>
@@ -269,11 +270,27 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formReportedBy"
             type="text"
             defaultValue={formData.reported_by}
-            placeholder="-- Reported By --"
+            placeholder="Reported By "
             name="reported_by"
             disabled
           />
         </Field>
+        <div className="grid gap-4">
+          <div className="h-72 overflow-hidden rounded-md border lg:h-full lg:min-h-72">
+            <Location incidentID={selectedIncident?.id || ''} />
+          </div>
+          <Field>
+            <FieldLabel htmlFor="formLocationDescription">
+              Location Description
+            </FieldLabel>
+            <Textarea
+              id="formLocationDescription"
+              value={formData.location_description}
+              onChange={handleInputChange}
+              name="location_description"
+            />
+          </Field>
+        </div>
         <Field>
           <FieldLabel htmlFor="formLocation">Location</FieldLabel>
           <Input
@@ -281,17 +298,6 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             type="text"
             defaultValue={formData.location}
             disabled
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="formLocationDescription">
-            Location Description
-          </FieldLabel>
-          <Textarea
-            id="formLocationDescription"
-            value={formData.location_description}
-            onChange={handleInputChange}
-            name="location_description"
           />
         </Field>
         <Field>

@@ -199,12 +199,10 @@ export function ChatBox({
   };
 
   return (
-    <Card className="flex h-full w-full flex-col">
+    <Card className="shadow-none border-0 flex h-full w-full flex-col">
       <CardHeader className="border-b">
         <CardTitle>{title}</CardTitle>
-        <CardDescription>
-          {description || 'Incident thread conversation'}
-        </CardDescription>
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 p-0">
@@ -228,13 +226,13 @@ export function ChatBox({
                   }`}
                 >
                   <Card
-                    className={`max-w-xs lg:max-w-md ${
+                    className={`p-1 max-w-xs lg:max-w-md ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     }`}
                   >
-                    <CardContent className="p-3">
+                    <CardContent className="p-1">
                       <p className="text-sm wrap-break-word">
                         {message.content}
                       </p>
@@ -263,7 +261,7 @@ export function ChatBox({
         </ScrollArea>
       </CardContent>
 
-      <CardFooter className="border-t p-3">
+      <CardFooter className="border-t p-2">
         <form onSubmit={handleSendMessage} className="flex w-full gap-2">
           <Input
             placeholder="Type your message..."
