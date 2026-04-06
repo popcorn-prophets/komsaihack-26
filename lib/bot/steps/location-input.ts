@@ -1,6 +1,8 @@
 import type { BotThread } from '@/lib/bot/types';
 import { createDefaultGeocodingService } from '@/lib/geocoding';
 import type { Point } from '@/types/geo';
+import type { FlowThreadState } from '../flows/flow-types';
+import { translate } from '../i18n';
 import { BaseStepHandler } from './base-step';
 import type { Step } from './step-types';
 
@@ -24,8 +26,13 @@ export class LocationInputHandler extends BaseStepHandler {
 
   async parse(
     data: unknown,
-    step: Step
+    step: Step,
+    thread: BotThread
   ): Promise<{ value: unknown } | { error: string }> {
+    // Get locale from thread state if available
+    const state = (await thread.state) as FlowThreadState | null;
+    const locale = state?.locale;
+
     // Try to extract location from message payload or raw event payload.
     const location = this.extractPresetLocation(data);
 
@@ -35,8 +42,7 @@ export class LocationInputHandler extends BaseStepHandler {
           const reverseResult = await geocodingService.reverseGeocode(location);
           if (!reverseResult?.displayName) {
             return {
-              error:
-                'Unable to resolve location name from that pin. Please try again or send a nearby place/address.',
+              error: translate('step.location.resolve_error', locale),
             };
           }
 
@@ -54,8 +60,7 @@ export class LocationInputHandler extends BaseStepHandler {
         } catch (error) {
           console.error('Reverse geocoding error:', error);
           return {
-            error:
-              'Unable to process that pin right now. Please try again or send a place/address.',
+            error: translate('step.location.resolve_error', locale),
           };
         }
       }
@@ -71,8 +76,7 @@ export class LocationInputHandler extends BaseStepHandler {
     const textInput = this.extractTextInput(data);
     if (!textInput) {
       return {
-        error:
-          'I do not know where is that. Please send your location pin or a recognizable place/address.',
+        error: translate('step.location.pin_error', locale),
       };
     }
 
@@ -89,8 +93,7 @@ export class LocationInputHandler extends BaseStepHandler {
 
       if (!geocodedLocation) {
         return {
-          error:
-            'I do not know where is that. Please send a more specific place/address or share your location pin.',
+          error: translate('step.location.address_error', locale),
         };
       }
 
@@ -106,8 +109,7 @@ export class LocationInputHandler extends BaseStepHandler {
         !resolvedLocation.locationDescription
       ) {
         return {
-          error:
-            'I could not resolve the location name. Please send a more specific place/address or share your location pin.',
+          error: translate('step.location.resolve_error', locale),
         };
       }
 
@@ -120,8 +122,7 @@ export class LocationInputHandler extends BaseStepHandler {
     } catch (error) {
       console.error('Location geocoding error:', error);
       return {
-        error:
-          'Unable to process the location right now. Please try again or share your location pin.',
+        error: translate('step.location.resolve_error', locale),
       };
     }
   }
@@ -199,11 +200,17 @@ export class LocationInputHandler extends BaseStepHandler {
   async render(thread: BotThread, step: Step): Promise<void> {
     const renderCard = await renderCardPromise;
 
-    const prompt = step.prompt || 'Please share your location';
+    const prompt = step.prompt || translate('step.location.prompt');
+
+    // Get locale from thread state if available
+    const state = (await thread.state) as FlowThreadState | null;
+    const locale = state?.locale;
+
+    const content = translate('step.location.content', locale);
 
     await renderCard(thread, {
       title: prompt,
-      content: 'Send your location to proceed.',
+      content,
     });
   }
 }

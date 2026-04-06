@@ -1,3 +1,4 @@
+import { RealtimeAvatarStack } from '@/components/avatar/realtime-avatar-stack';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -15,6 +16,7 @@ export function SiteHeader() {
           <ThemeSwitcher />
         </div>
       </div>
+      <RealtimeAvatarStack roomName="break_roam" />
     </header>
   );
 }

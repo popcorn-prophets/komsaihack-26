@@ -14,7 +14,8 @@ export abstract class BaseStepHandler implements StepHandler {
    */
   abstract parse(
     data: unknown,
-    step: Step
+    step: Step,
+    thread?: BotThread
   ):
     | { value: unknown }
     | { error: string }

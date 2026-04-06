@@ -6,12 +6,19 @@ import { fetchIncidents, type Incident } from '@/lib/supabase/reports';
 import * as React from 'react';
 import IncidentEntry from './incident-entry';
 
+const SORTBY = 0;
+const SORTORDER = 1;
+
 interface IncidentListProps {
   onIncidentSelect?: (incidentID: string) => void;
+  sort: string[];
 }
 
-async function getReportData(count: number = 50): Promise<Incident[] | null> {
-  const incidents = await fetchIncidents(count);
+async function getReportData(
+  sort: string[],
+  count: number = 50
+): Promise<Incident[] | null> {
+  const incidents = await fetchIncidents(sort[SORTBY], sort[SORTORDER], count);
 
   if (incidents) return incidents;
   else {
@@ -20,10 +27,9 @@ async function getReportData(count: number = 50): Promise<Incident[] | null> {
   }
 }
 
-export function IncidentList({ onIncidentSelect }: IncidentListProps) {
-  // NOTE: Refactor to increase shorten code
+export function IncidentList({ onIncidentSelect, sort }: IncidentListProps) {
+  // NOTE: Refactor to shorten code
   const [incidents, setIncidents] = React.useState<Incident[]>([]);
-  const [loading, setLoading] = React.useState(true);
   const [selectedIncident, setSelectedIncident] = React.useState<string | null>(
     null
   );
@@ -32,9 +38,8 @@ export function IncidentList({ onIncidentSelect }: IncidentListProps) {
   // display loading
   React.useEffect(() => {
     const loadIncidents = async () => {
-      setLoading(true);
       try {
-        const data = await getReportData();
+        const data = await getReportData(sort);
         if (data && data.length > 0) {
           setIncidents(data);
 
@@ -47,21 +52,17 @@ export function IncidentList({ onIncidentSelect }: IncidentListProps) {
         }
       } catch (error) {
         console.error('Failed to load incidents:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     loadIncidents();
     // All external variables used inside must be in the dependency array
-  }, [onIncidentSelect, setIncidents, setSelectedIncident, setLoading]);
+  }, [onIncidentSelect, setIncidents, setSelectedIncident]);
 
   const handleIncidentClick = (id: string) => {
     setSelectedIncident(id);
     if (id) onIncidentSelect!(id);
   };
-
-  if (loading) return <div>Loading...</div>;
 
   return (
     <ScrollArea className={`h-full w-full rounded-md`}>

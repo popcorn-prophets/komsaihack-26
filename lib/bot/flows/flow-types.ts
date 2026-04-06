@@ -1,3 +1,4 @@
+import type { MessageKey, ResidentLocale } from '../i18n/types';
 import { Step } from '../steps/step-types';
 import { BotThread } from '../types';
 
@@ -18,6 +19,9 @@ export interface FlowStartConfig {
 
   /** Message shown when resident requirement is not met */
   missingResidentMessage?: string;
+
+  /** i18n key shown when resident requirement is not met */
+  missingResidentMessageKey?: MessageKey;
 
   /** Fallback flow to start when resident requirement is not met */
   fallbackFlowId?: string;
@@ -80,6 +84,9 @@ export interface FlowThreadState {
 
   /** Temporary return target used by edit detours (e.g., back to confirmation). */
   pendingReturnStepId?: string;
+
+  /** Resident's preferred locale for message rendering */
+  locale: ResidentLocale;
 
   /** Optional: timestamp when flow was started */
   startedAt?: number;

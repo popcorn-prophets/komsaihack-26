@@ -1,3 +1,5 @@
+import type { ResidentLocale } from '@/lib/bot/i18n';
+import { localizeIncidentSeverity, translate } from '@/lib/bot/i18n';
 import type { BotThread } from '@/lib/bot/types';
 import type { Point } from '@/types/geo';
 import { Constants, type Enums } from '@/types/supabase';
@@ -9,7 +11,11 @@ import {
   minLength,
   required,
 } from '../steps/validators';
-import { createEditableConfirmationStep } from './confirmation-step';
+import {
+  buildEditableConfirmationSummary,
+  createEditableConfirmationStep,
+} from './confirmation-step';
+import { getThreadLocale } from './flow-locale';
 import type { Flow } from './flow-types';
 import {
   fetchIncidentTypeNames,
@@ -61,6 +67,43 @@ function getLocationSummary(data: Record<string, unknown>): string {
   return 'Not provided';
 }
 
+const incidentReviewFields = [
+  {
+    targetStepId: 'incident_type',
+    label: 'Incident Type',
+    dataKey: 'incidentTypeName',
+  },
+  {
+    targetStepId: 'severity',
+    label: 'Severity',
+    dataKey: 'severity',
+  },
+  {
+    targetStepId: 'description',
+    label: 'Description',
+    dataKey: 'description',
+  },
+  {
+    targetStepId: 'location',
+    label: 'Location',
+    dataKey: 'location',
+    renderValue: (data: Record<string, unknown>) => getLocationSummary(data),
+  },
+];
+
+const incidentReviewSteps = createEditableConfirmationStep({
+  id: 'review_submission',
+  prompt: 'Please review your report before submission.',
+  editPrompt: 'Select the field you want to edit.',
+  confirmLabel: 'Confirm and Submit',
+  cancelLabel: 'Cancel',
+  editLabel: 'Edit',
+  fields: incidentReviewFields,
+  footer: 'Select a field to edit, cancel the report, or confirm to submit.',
+});
+
+const [incidentReviewStep, incidentReviewEditStep] = incidentReviewSteps;
+
 async function hydrateIncidentReportingFlowOptions(): Promise<void> {
   const incidentTypeNames = await fetchIncidentTypeNames();
 
@@ -87,6 +130,56 @@ async function hydrateIncidentReportingFlowOptions(): Promise<void> {
   severityStep.options = INCIDENT_SEVERITY_OPTIONS;
 }
 
+function localizeIncidentReviewStep(locale: ResidentLocale): void {
+  const localizedFields = [
+    {
+      targetStepId: 'incident_type',
+      label: translate('incident.review.incident_type_label', locale),
+      dataKey: 'incidentTypeName',
+    },
+    {
+      targetStepId: 'severity',
+      label: translate('incident.review.severity_label', locale),
+      dataKey: 'severity',
+    },
+    {
+      targetStepId: 'description',
+      label: translate('incident.review.description_label', locale),
+      dataKey: 'description',
+    },
+    {
+      targetStepId: 'location',
+      label: translate('incident.review.location_label', locale),
+      dataKey: 'location',
+      renderValue: (data: Record<string, unknown>) => getLocationSummary(data),
+    },
+  ];
+
+  incidentReviewStep.prompt = translate('incident.prompt.review', locale);
+  incidentReviewStep.confirmation = {
+    ...(incidentReviewStep.confirmation ?? {}),
+    fields: localizedFields,
+    confirmLabel: translate('incident.review.confirm', locale),
+    cancelLabel: translate('incident.review.cancel', locale),
+    editLabel: translate('incident.review.edit', locale),
+    footer: translate('incident.review.footer', locale),
+  };
+  incidentReviewStep.renderContent = (data, renderLocale) =>
+    buildEditableConfirmationSummary(
+      localizedFields,
+      data,
+      translate('incident.review.footer', renderLocale)
+    );
+  incidentReviewEditStep.prompt = translate(
+    'incident.review.edit_prompt',
+    locale
+  );
+  incidentReviewEditStep.options = localizedFields.map((field, index) => ({
+    label: field.label,
+    value: `f${index}`,
+  }));
+}
+
 /**
  * Incident reporting flow for onboarded residents.
  */
@@ -97,19 +190,21 @@ export const incidentReportingFlow: Flow = {
   start: {
     commands: ['report', 'report incident', 'incident'],
     requiresResident: true,
-    missingResidentMessage:
-      'You need to complete onboarding before reporting incidents. Let us start your registration.',
+    missingResidentMessageKey: 'handler.missing_resident',
     fallbackFlowId: 'onboarding',
   },
-  onStart: async () => {
+  onStart: async (thread) => {
     await hydrateIncidentReportingFlowOptions();
+    const locale = await getThreadLocale(thread);
+    localizeIncidentReviewStep(locale);
   },
 
   steps: [
     {
       id: 'incident_type',
       type: 'selection',
-      prompt: 'What type of incident are you reporting?',
+      renderPrompt: (_data, locale) =>
+        translate('incident.prompt.type', locale),
       options: [],
       validations: [required],
       dataKey: 'incidentTypeName',
@@ -117,7 +212,13 @@ export const incidentReportingFlow: Flow = {
     {
       id: 'severity',
       type: 'selection',
-      prompt: 'How severe is the incident right now?',
+      renderPrompt: (_data, locale) =>
+        translate('incident.prompt.severity', locale),
+      renderOptions: (_data, locale) =>
+        INCIDENT_SEVERITIES.map((severity) => ({
+          label: localizeIncidentSeverity(severity, locale),
+          value: severity,
+        })),
       options: INCIDENT_SEVERITY_OPTIONS,
       validations: [required],
       dataKey: 'severity',
@@ -125,51 +226,21 @@ export const incidentReportingFlow: Flow = {
     {
       id: 'description',
       type: 'text',
-      prompt: 'Please describe what happened.',
+      renderPrompt: (_data, locale) =>
+        translate('incident.prompt.description', locale),
       validations: [required, compose(minLength(10), maxLength(1200))],
       dataKey: 'description',
     },
     {
       id: 'location',
       type: 'location',
-      prompt: 'Please share the location of the incident.',
+      renderPrompt: (_data, locale) =>
+        translate('incident.prompt.location', locale),
       validations: [isGeometryPoint],
       dataKey: 'location',
       resolveLocationDescription: true,
     },
-    ...createEditableConfirmationStep({
-      id: 'review_submission',
-      prompt: 'Please review your report before submission.',
-      editPrompt: 'Select the field you want to edit.',
-      confirmLabel: 'Confirm and Submit',
-      cancelLabel: 'Cancel',
-      editLabel: 'Edit',
-      fields: [
-        {
-          targetStepId: 'incident_type',
-          label: 'Incident Type',
-          dataKey: 'incidentTypeName',
-        },
-        {
-          targetStepId: 'severity',
-          label: 'Severity',
-          dataKey: 'severity',
-        },
-        {
-          targetStepId: 'description',
-          label: 'Description',
-          dataKey: 'description',
-        },
-        {
-          targetStepId: 'location',
-          label: 'Location',
-          dataKey: 'location',
-          renderValue: (data) => getLocationSummary(data),
-        },
-      ],
-      footer:
-        'Select a field to edit, cancel the report, or confirm to submit.',
-    }),
+    ...incidentReviewSteps,
   ],
 
   /**
@@ -178,13 +249,13 @@ export const incidentReportingFlow: Flow = {
    */
   onComplete: async (data, thread: BotThread) => {
     try {
+      const locale = await getThreadLocale(thread);
       const submissionDecision = data.submissionDecision;
       if (submissionDecision !== 'confirm') {
         const { renderCard } = await import('../renderers/card-renderer');
         await renderCard(thread, {
-          title: 'Cancelled',
-          content:
-            'Incident reporting has been cancelled. Send "report" anytime to start again.',
+          title: translate('incident.cancelled.title', locale),
+          content: translate('incident.cancelled.message', locale),
         });
         return;
       }
@@ -258,20 +329,18 @@ export const incidentReportingFlow: Flow = {
 
       const { renderCard } = await import('../renderers/card-renderer');
       await renderCard(thread, {
-        title: 'Report Submitted',
-        content:
-          'Your incident report has been received. Responders will review it as soon as possible.',
+        title: translate('incident.submitted.title', locale),
+        content: translate('incident.submitted.message', locale),
       });
     } catch (error) {
       console.error('Incident reporting completion error:', error);
 
+      const locale = await getThreadLocale(thread);
+
       const { renderCard } = await import('../renderers/card-renderer');
       await renderCard(thread, {
-        title: 'Error',
-        content:
-          error instanceof Error
-            ? error.message
-            : 'An error occurred while submitting your report. Please try again.',
+        title: translate('incident.error.title', locale),
+        content: translate('incident.error.submit_fallback', locale),
       });
       throw error;
     }
@@ -281,11 +350,11 @@ export const incidentReportingFlow: Flow = {
    * Called when incident reporting is cancelled.
    */
   onCancel: async (thread) => {
+    const locale = await getThreadLocale(thread);
     const { renderCard } = await import('../renderers/card-renderer');
     await renderCard(thread, {
-      title: 'Cancelled',
-      content:
-        'Incident reporting has been cancelled. Send "report" anytime to start again.',
+      title: translate('incident.cancelled.title', locale),
+      content: translate('incident.cancelled.message', locale),
     });
   },
 };

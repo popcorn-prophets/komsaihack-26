@@ -45,7 +45,13 @@ const smoothScrollTo = (targetId: string) => {
   }
 };
 
-export function Navbar({ authButton }: { authButton?: ReactNode }) {
+export function Navbar({
+  desktopAuthButton,
+  mobileAuthButton,
+}: {
+  desktopAuthButton?: ReactNode;
+  mobileAuthButton?: ReactNode;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const { setTheme, theme } = useTheme();
 
@@ -89,7 +95,7 @@ export function Navbar({ authButton }: { authButton?: ReactNode }) {
           {/* Control Center */}
           <Link href="/control-center">Control Center</Link>
 
-          {authButton}
+          {desktopAuthButton}
 
           {/* GitHub */}
           <Button
@@ -209,21 +215,7 @@ export function Navbar({ authButton }: { authButton?: ReactNode }) {
                   >
                     <Link href="/control-center">Control Center</Link>
                   </Button>
-                  {/* Sign In + Create Admin */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      asChild
-                      className="cursor-pointer w-full"
-                    >
-                      <Link href="/auth/sign-in">Sign In</Link>
-                    </Button>
-
-                    <Button size="lg" asChild className="cursor-pointer w-full">
-                      <Link href="/auth/sign-up">Create Admin</Link>
-                    </Button>
-                  </div>
+                  {mobileAuthButton}
                 </div>
               </div>
             </div>

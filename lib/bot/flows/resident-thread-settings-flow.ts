@@ -1,6 +1,11 @@
 import type { BotThread } from '@/lib/bot/types';
+import {
+  getResidentLanguageLabel,
+  isResidentLanguage,
+  RESIDENT_LANGUAGE_OPTIONS,
+  RESIDENT_LANGUAGE_VALUES,
+} from '@/lib/residents/languages';
 import type { Point } from '@/types/geo';
-import type { Database } from '@/types/supabase';
 import {
   compose,
   isGeometryPoint,
@@ -15,12 +20,7 @@ import {
   type ResidentSettingsEditableField,
 } from './resident-thread-settings-service';
 
-type ResidentLanguage = Database['public']['Enums']['resident_language'];
-
-const LANGUAGE_OPTIONS = [
-  { label: 'English', value: 'eng' },
-  { label: 'Filipino (Tagalog)', value: 'fil' },
-];
+const LANGUAGE_OPTIONS = RESIDENT_LANGUAGE_OPTIONS;
 
 const EDITABLE_FIELD_OPTIONS = [
   { label: 'Name', value: 'name' },
@@ -56,7 +56,7 @@ export const residentThreadSettingsFlow: Flow = {
       id: 'field',
       type: 'selection',
       prompt: 'Which detail would you like to update?',
-      options: EDITABLE_FIELD_OPTIONS,
+      options: [...EDITABLE_FIELD_OPTIONS],
       validations: [
         required,
         isOneOf(['name', 'language', 'location', 'cancel']),
@@ -92,8 +92,8 @@ export const residentThreadSettingsFlow: Flow = {
       id: 'language',
       type: 'selection',
       prompt: 'What is your updated preferred language?',
-      options: LANGUAGE_OPTIONS,
-      validations: [required, isOneOf(['eng', 'fil'])],
+      options: [...LANGUAGE_OPTIONS],
+      validations: [required, isOneOf([...RESIDENT_LANGUAGE_VALUES])],
       dataKey: 'language',
       nextStep: () => 'done',
     },
@@ -140,14 +140,13 @@ export const residentThreadSettingsFlow: Flow = {
         valueToUpdate = data.name;
         successContent = `Your name is now set to ${data.name}.`;
       } else if (selectedField === 'language') {
-        if (typeof data.language !== 'string') {
+        if (!isResidentLanguage(data.language)) {
           throw new Error('Updated language was not provided.');
         }
-        valueToUpdate = data.language as ResidentLanguage;
-        successContent =
-          data.language === 'fil'
-            ? 'Your preferred language is now Filipino (Tagalog).'
-            : 'Your preferred language is now English.';
+        valueToUpdate = data.language;
+        successContent = `Your preferred language is now ${getResidentLanguageLabel(
+          data.language
+        )}.`;
       } else {
         if (!data.location || typeof data.location !== 'object') {
           throw new Error('Updated location was not provided.');

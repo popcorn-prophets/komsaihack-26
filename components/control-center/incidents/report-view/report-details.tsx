@@ -17,6 +17,7 @@ import {
   fetchIncidentTypeName,
   fetchResidentName,
   Incident,
+  updateIncidentEntry,
 } from '@/lib/supabase/reports';
 import { convertTime, hexToCoordinates } from '@/lib/utils';
 import React from 'react';
@@ -83,6 +84,9 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     updated_at: '',
   });
 
+  const [selectedIncident, setSelectedIncident] =
+    React.useState<Incident | null>(null);
+
   /*
   TODO: refactor this block (ideally change query to automatically retrieve
   respondent name and incident type name)
@@ -114,29 +118,119 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
   // Fetch incident data when incidentID changes
   React.useEffect(() => {
     if (incidentID) {
-      searchIncidentById(incidentID).then((incident) =>
-        retrieveIncidentName(incident)
-      );
+      searchIncidentById(incidentID).then((incident) => {
+        retrieveIncidentName(incident);
+        setSelectedIncident(incident);
+      });
     }
   }, [incidentID]); // Re-run when incidentID changes
+
+  // Handle input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle Select changes
+  const handleSelectChange = (fieldName: keyof FormData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: value,
+    }));
+  };
+
+  async function updateIncident() {
+    if (selectedIncident) {
+      const updatedIncident: Incident = {
+        ...selectedIncident,
+        status: formData.status,
+        severity: formData.severity,
+        location_description: formData.location_description,
+        description: formData.description,
+      };
+
+      const success: boolean = await updateIncidentEntry(updatedIncident);
+      if (success) {
+        setSelectedIncident(updatedIncident);
+      }
+    }
+  }
+
+  function resetForm() {
+    if (selectedIncident) {
+      setFormData((prev) => ({
+        ...prev,
+        status: selectedIncident.status,
+        severity: selectedIncident.severity,
+        location_description: selectedIncident.location_description ?? '',
+        description: selectedIncident.description ?? '',
+      }));
+    }
+  }
 
   return (
     <form className="w-full p-10">
       <h1 className="text-3xl font-bold my-2">Report Details</h1>
       <h2 className="text-xl my-2 mb-8">Report ID: {formData.id}</h2>
+      <FieldGroup className="w-full mb-8">
+        <Field orientation="horizontal" className="flex flex-1 w-full">
+          <Button
+            onClick={updateIncident}
+            type="button"
+            className="flex flex-1"
+          >
+            Update
+          </Button>
+          <Button onClick={resetForm} type="button" className="flex flex-1">
+            Reset
+          </Button>
+        </Field>
+      </FieldGroup>
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="formReportedBy">Reported By</FieldLabel>
-          <Input
-            id="formReportedBy"
-            type="text"
-            defaultValue={formData.reported_by}
-            placeholder="-- Reported By --"
-          />
+          <FieldLabel htmlFor="formStatus">Status</FieldLabel>
+          <Select
+            value={formData.status}
+            onValueChange={(value) => handleSelectChange('status', value)}
+          >
+            <SelectTrigger id="formStatus" name="status">
+              <SelectValue placeholder="--Select Severity--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new">New</SelectItem>
+              <SelectItem value="validated">Validated</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="dismissed">Dismissed</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="formSeverity">Severity</FieldLabel>
+          <Select
+            value={formData.severity}
+            onValueChange={(value) => handleSelectChange('severity', value)}
+            name="severity"
+          >
+            <SelectTrigger id="formSeverity">
+              <SelectValue placeholder="--Select Status--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="moderate">Moderate</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="critical">Critical</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
         <Field>
           <FieldLabel htmlFor="formIncidentType">Incident Type</FieldLabel>
-          <Select value={formData.incident_name}>
+          <Select value={formData.incident_name} name="incident_name" disabled>
             <SelectTrigger className="w-full" id="formIncidentType">
               <SelectValue placeholder="--Select Incident Type--" />
             </SelectTrigger>
@@ -158,6 +252,17 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
           </Select>
         </Field>
         <Field>
+          <FieldLabel htmlFor="formReportedBy">Reported By</FieldLabel>
+          <Input
+            id="formReportedBy"
+            type="text"
+            defaultValue={formData.reported_by}
+            placeholder="-- Reported By --"
+            name="reported_by"
+            disabled
+          />
+        </Field>
+        <Field>
           <FieldLabel htmlFor="formLocation">Location</FieldLabel>
           <Input
             id="formLocation"
@@ -167,44 +272,24 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="formLocDesc">Location Description</FieldLabel>
+          <FieldLabel htmlFor="formLocationDescription">
+            Location Description
+          </FieldLabel>
           <Textarea
-            id="formLocDesc"
-            defaultValue={formData.location_description}
+            id="formLocationDescription"
+            value={formData.location_description}
+            onChange={handleInputChange}
+            name="location_description"
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="formSeverity">Severity</FieldLabel>
-          <Select value={formData.severity}>
-            <SelectTrigger id="formSeverity">
-              <SelectValue placeholder="--Select Status--" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="moderate">Moderate</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
           <FieldLabel htmlFor="formDescription">Description</FieldLabel>
-          <Textarea id="formDescription" defaultValue={formData.description} />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="formStatus">Status</FieldLabel>
-          <Select value={formData.status}>
-            <SelectTrigger id="formStatus">
-              <SelectValue placeholder="--Select Severity--" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="validated">Validated</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="dismissed">Dismissed</SelectItem>
-            </SelectContent>
-          </Select>
+          <Textarea
+            id="formDescription"
+            value={formData.description}
+            onChange={handleInputChange}
+            name="description"
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor="formIncidentTime">Incident Time</FieldLabel>
@@ -212,32 +297,20 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             id="formIncidentTime"
             type="datetime-local"
             defaultValue={formData.incident_time}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="formCreatedOn">Created On</FieldLabel>
-          <Input
-            id="formCreatedOn"
-            type="datetime-local"
-            defaultValue={formData.created_at}
             disabled
+            name="incident_time"
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="formUpdatedOn">Updated On</FieldLabel>
+          <FieldLabel htmlFor="formUpdatedOn">Last Updated On</FieldLabel>
           <Input
             id="formUpdatedOn"
             type="datetime-local"
             defaultValue={formData.updated_at}
             disabled
+            name="updated_at"
           />
         </Field>
-        <FieldGroup className="w-full">
-          <Field orientation="horizontal" className="flex flex-1 w-full">
-            <Button>Update Form</Button>
-            <Button>Reset</Button>
-          </Field>
-        </FieldGroup>
       </FieldGroup>
     </form>
   );

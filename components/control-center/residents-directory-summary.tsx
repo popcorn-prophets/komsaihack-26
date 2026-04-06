@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { RESIDENT_LANGUAGE_OPTIONS } from '@/lib/residents/languages';
 
 import type { ResidentDirectoryStats } from './residents-directory-utils';
 
@@ -36,14 +37,15 @@ export function ResidentsDirectorySummary({
   totalResidents,
   telegramCount,
   messengerCount,
-  filipinoCount,
-  englishCount,
+  languageCounts,
   unknownLanguageCount,
 }: ResidentDirectoryStats) {
-  const languageSplit =
-    unknownLanguageCount > 0
-      ? `${filipinoCount} FIL / ${englishCount} ENG / ${unknownLanguageCount} Unknown`
-      : `${filipinoCount} FIL / ${englishCount} ENG`;
+  const languageSplit = [
+    ...RESIDENT_LANGUAGE_OPTIONS.map(
+      ({ value, label }) => `${label} ${languageCounts[value]}`
+    ),
+    ...(unknownLanguageCount > 0 ? [`Unknown ${unknownLanguageCount}`] : []),
+  ].join(' / ');
 
   return (
     <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">

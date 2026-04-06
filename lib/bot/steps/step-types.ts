@@ -1,5 +1,6 @@
 import type { BotThread } from '@/lib/bot/types';
 import { FlowData } from '../flows/flow-types';
+import type { ResidentLocale } from '../i18n/types';
 
 /**
  * Validator function for step input validation.
@@ -87,10 +88,19 @@ export interface Step {
   resolveLocationDescription?: boolean;
 
   /** Build prompt from collected flow data at render time */
-  renderPrompt?: (data: FlowData) => string | undefined;
+  renderPrompt?: (data: FlowData, locale: ResidentLocale) => string | undefined;
 
   /** Build content/body from collected flow data at render time */
-  renderContent?: (data: FlowData) => string | undefined;
+  renderContent?: (
+    data: FlowData,
+    locale: ResidentLocale
+  ) => string | undefined;
+
+  /** Build selection options dynamically at render time */
+  renderOptions?: (
+    data: FlowData,
+    locale: ResidentLocale
+  ) => SelectionOption[] | undefined;
 
   /** For selection steps, the available options */
   options?: SelectionOption[];
@@ -117,7 +127,8 @@ export interface Step {
   onAfterParse?: (
     value: unknown,
     data: FlowData,
-    input: unknown
+    input: unknown,
+    thread?: BotThread
   ) => Promise<Partial<FlowData> | void>;
 }
 
@@ -133,10 +144,12 @@ export interface StepHandler {
    * Parse and validate user input from a message.
    * @param data Current step or message data
    * @param step Step definition for context
+   * @param thread Optional bot thread for accessing context (e.g., state with locale)
    */
   parse(
     data: unknown,
-    step: Step
+    step: Step,
+    thread?: BotThread
   ):
     | { value: unknown }
     | { error: string }
