@@ -129,17 +129,10 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { id, value } = e.target;
-    const fieldName =
-      id.replace('form', '').charAt(0).toLowerCase() +
-      id.replace('form', '').slice(1);
-
-    //TODO: remove after debugging
-    console.log(fieldName);
-
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [fieldName]: value,
+      [name]: value,
     }));
   };
 
@@ -153,7 +146,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
 
   async function updateIncident() {
     if (selectedIncident) {
-      const updatedIncident = {
+      const updatedIncident: Incident = {
         ...selectedIncident,
         status: formData.status,
         severity: formData.severity,
@@ -169,19 +162,15 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
   }
 
   function resetForm() {
-    setFormData({
-      id: '',
-      reported_by: '',
-      incident_name: '',
-      location: '',
-      location_description: '',
-      severity: '',
-      description: '',
-      status: '',
-      incident_time: '',
-      created_at: '',
-      updated_at: '',
-    });
+    if (selectedIncident) {
+      setFormData((prev) => ({
+        ...prev,
+        status: selectedIncident.status,
+        severity: selectedIncident.severity,
+        location_description: selectedIncident.location_description ?? '',
+        description: selectedIncident.description ?? '',
+      }));
+    }
   }
 
   return (
@@ -209,7 +198,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             value={formData.status}
             onValueChange={(value) => handleSelectChange('status', value)}
           >
-            <SelectTrigger id="formStatus">
+            <SelectTrigger id="formStatus" name="status">
               <SelectValue placeholder="--Select Severity--" />
             </SelectTrigger>
             <SelectContent>
@@ -226,6 +215,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
           <Select
             value={formData.severity}
             onValueChange={(value) => handleSelectChange('severity', value)}
+            name="severity"
           >
             <SelectTrigger id="formSeverity">
               <SelectValue placeholder="--Select Status--" />
@@ -245,6 +235,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             onValueChange={(value) =>
               handleSelectChange('incident_name', value)
             }
+            name="incident_name"
             disabled
           >
             <SelectTrigger className="w-full" id="formIncidentType">
@@ -275,6 +266,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             defaultValue={formData.reported_by}
             placeholder="-- Reported By --"
             onChange={handleInputChange}
+            name="reported_by"
             disabled
           />
         </Field>
@@ -288,21 +280,23 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="formLocation_description">
+          <FieldLabel htmlFor="formLocationDescription">
             Location Description
           </FieldLabel>
           <Textarea
-            id="formLocation_description"
-            defaultValue={formData.location_description}
+            id="formLocationDescription"
+            value={formData.location_description}
             onChange={handleInputChange}
+            name="location_description"
           />
         </Field>
         <Field>
           <FieldLabel htmlFor="formDescription">Description</FieldLabel>
           <Textarea
             id="formDescription"
-            defaultValue={formData.description}
+            value={formData.description}
             onChange={handleInputChange}
+            name="description"
           />
         </Field>
         <Field>
@@ -313,6 +307,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             defaultValue={formData.incident_time}
             onChange={handleInputChange}
             disabled
+            name="incident_time"
           />
         </Field>
         <Field>
@@ -322,6 +317,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             type="datetime-local"
             defaultValue={formData.updated_at}
             disabled
+            name="updated_at"
           />
         </Field>
       </FieldGroup>
