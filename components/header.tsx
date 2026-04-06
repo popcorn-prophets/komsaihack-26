@@ -16,7 +16,6 @@ export default function Header() {
           <WordmarkLogo className="hidden md:block" />
         </Link>
         <div className="flex gap-4 items-center">
-          <Link href="/chat">Chat</Link>
           <Link href="/control-center">Control Center</Link>
           <Suspense>
             <AuthButton />

@@ -93,6 +93,7 @@ export function Navbar({
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center gap-4 text-sm">
           {/* Control Center */}
+          <Link href="/chat">Chat</Link>
           <Link href="/control-center">Control Center</Link>
 
           {desktopAuthButton}
@@ -207,6 +208,14 @@ export function Navbar({
                   {' '}
                   {/* Changed to flex-col for better control */}
                   {/* Control Center - Now full width to match the grid below */}
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    asChild
+                    className="w-full justify-center text-base font-medium cursor-pointer"
+                  >
+                    <Link href="/chat">Chat</Link>
+                  </Button>
                   <Button
                     variant="ghost"
                     size="lg"
