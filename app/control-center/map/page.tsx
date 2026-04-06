@@ -1,5 +1,5 @@
-import { IncidentMarker } from '@/components/control-center/map/interactive-map';
-import { InteractiveMapShell } from '@/components/control-center/map/interactive-map-shell';
+import { IncidentMapSceneShell } from '@/components/control-center/map/incident-map-scene-shell';
+import type { IncidentMarker } from '@/components/control-center/map/incident-map-scene';
 import { toPoint } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -134,7 +134,7 @@ export default async function Page() {
   });
 
   return (
-    <InteractiveMapShell
+    <IncidentMapSceneShell
       markers={dbMarkers}
       destination={MIAGAO_MDRRMO_DESTINATION}
     />
