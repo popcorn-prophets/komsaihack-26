@@ -41,7 +41,7 @@ export function IncidentTabs() {
       <TabsContent value="kanban" className="flex flex-row w-full gap-4">
         <KanbanContent title="New" />
         <KanbanContent title="Validated" />
-        <KanbanContent title="In Progress" />
+        <KanbanContent title="In_Progress" />
         <KanbanContent title="Resolved" />
         <KanbanContent title="Dismissed" />
       </TabsContent>
