@@ -24,6 +24,7 @@ import {
   type MapPolygonFeature,
 } from './map-polygon-draw';
 
+import { MAP_FALLBACK_CENTER } from '@/lib/geo';
 import { cn } from '@/lib/utils';
 
 const defaultStyles = {
@@ -222,13 +223,21 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let isUnmounted = false;
+
     const initialStyle =
       resolvedTheme === 'dark' ? mapStyles.dark : mapStyles.light;
     currentStyleRef.current = initialStyle;
 
+    const hasExplicitInitialCenter =
+      viewport?.center !== undefined || props.center !== undefined;
+
     const map = new MapLibreGL.Map({
       container: containerRef.current,
       style: initialStyle,
+      center: hasExplicitInitialCenter
+        ? (viewport?.center ?? props.center)
+        : MAP_FALLBACK_CENTER,
       renderWorldCopies: false,
       attributionControl: {
         compact: true,
@@ -236,6 +245,31 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       ...props,
       ...viewport,
     });
+
+    if (
+      !hasExplicitInitialCenter &&
+      typeof navigator !== 'undefined' &&
+      'geolocation' in navigator
+    ) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          if (isUnmounted) return;
+          map.flyTo({
+            center: [coords.longitude, coords.latitude],
+            zoom: Math.max(map.getZoom(), 12),
+            duration: 900,
+          });
+        },
+        () => {
+          // Keep the global fallback center when geolocation is unavailable.
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 5 * 60 * 1000,
+        }
+      );
+    }
 
     const styleDataHandler = () => {
       clearStyleTimeout();
@@ -263,6 +297,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     setMapInstance(map);
 
     return () => {
+      isUnmounted = true;
       clearStyleTimeout();
       map.off('load', loadHandler);
       map.off('styledata', styleDataHandler);

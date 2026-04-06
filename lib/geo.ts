@@ -1,5 +1,8 @@
 import { Point } from '@/types/geo';
 
+/** Default map center [longitude, latitude] used when browser geolocation is unavailable. */
+export const MAP_FALLBACK_CENTER: [number, number] = [122.2333324, 10.6499974];
+
 export function pointToString(point: Point): string {
   return `POINT(${point.coordinates[0]} ${point.coordinates[1]})`;
 }

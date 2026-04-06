@@ -6,6 +6,7 @@ import {
   MarkerContent,
   type MapRef,
 } from '@/components/control-center/map/map';
+import { MAP_FALLBACK_CENTER } from '@/lib/geo';
 import { fetchIncidentById } from '@/lib/supabase/reports';
 import { hexToCoordinates } from '@/lib/utils';
 import * as React from 'react';
@@ -19,9 +20,6 @@ interface ParsedCoordinates {
   lat: number | null;
   long: number | null;
 }
-
-// Moved outside the component to ensure a stable reference and fix ESLint warning
-const DEFAULT_LOCATION = [10.6499974, 122.2333324];
 
 export function Location({ incidentID, isActive = true }: MapComponentProps) {
   const mapRef = React.useRef<MapRef | null>(null);
@@ -66,10 +64,9 @@ export function Location({ incidentID, isActive = true }: MapComponentProps) {
     const hasValidCoords =
       parsedCoord.lat !== null && parsedCoord.long !== null;
 
-    // Using index 0 and 1 from the stable DEFAULT_LOCATION constant
     const center: [number, number] = hasValidCoords
       ? [parsedCoord.long!, parsedCoord.lat!]
-      : [DEFAULT_LOCATION[1], DEFAULT_LOCATION[0]];
+      : MAP_FALLBACK_CENTER;
 
     const zoom = hasValidCoords ? 15 : 10;
 
@@ -78,7 +75,7 @@ export function Location({ incidentID, isActive = true }: MapComponentProps) {
       zoom,
       duration: 1500,
     });
-  }, [parsedCoord]); // defaultLocation removed from here as it is now static
+  }, [parsedCoord]);
 
   React.useEffect(() => {
     if (!isActive || !mapRef.current) return;
