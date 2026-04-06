@@ -20,6 +20,17 @@ export interface SelectionCardOptions {
   options: SelectionOption[];
 }
 
+export interface IdleCommandOption {
+  command: string;
+  description: string;
+}
+
+export interface IdleCommandCardOptions {
+  title: string;
+  content?: string;
+  options: IdleCommandOption[];
+}
+
 /**
  * Render a simple card with text content.
  */
@@ -55,6 +66,36 @@ export async function renderSelectionCard(
           </Button>
         ))}
       </Actions>
+    </Card>
+  );
+}
+
+/**
+ * Render idle command options as clickable actions.
+ */
+export async function renderIdleCommandCard(
+  thread: BotThread,
+  options: IdleCommandCardOptions
+): Promise<void> {
+  const descriptions = options.options
+    .map((option) => `${option.command}: ${option.description}`)
+    .join('\n');
+
+  await thread.post(
+    <Card title={options.title}>
+      {options.content ? <CardText>{options.content}</CardText> : null}
+      <Actions>
+        {options.options.map((option) => (
+          <Button
+            key={option.command}
+            id="idle_start_flow"
+            value={option.command}
+          >
+            {option.command}
+          </Button>
+        ))}
+      </Actions>
+      <CardText>{descriptions}</CardText>
     </Card>
   );
 }

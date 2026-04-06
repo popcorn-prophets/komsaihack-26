@@ -283,6 +283,21 @@ export const messageCatalog: MessageCatalog = {
     fil: '3) Ipadala ang "{{command}}" para i-update ang profile settings mo.',
     hil: '3) Ipadala ang "{{command}}" para i-update ang profile settings mo.',
   },
+  'handler.start.option_guided_report_desc': {
+    eng: 'Step-by-step incident report.',
+    fil: 'Step-by-step na pag-ulat ng insidente.',
+    hil: 'Step-by-step nga pagreport sang insidente.',
+  },
+  'handler.start.option_quick_report_desc': {
+    eng: 'One-message quick report with AI assistance.',
+    fil: 'Mabilis na one-message report na may AI assistance.',
+    hil: 'Madasig nga one-message report nga may AI assistance.',
+  },
+  'handler.start.option_profile_desc': {
+    eng: 'Update your profile details.',
+    fil: 'I-update ang profile details mo.',
+    hil: 'I-update ang profile details mo.',
+  },
   'handler.start.hint_tip': {
     eng: 'Tip: You can also type naturally, like "I want to report an incident."',
     fil: 'Tip: Puwede ka ring magsulat nang natural, gaya ng "Gusto kong mag-report ng insidente."',

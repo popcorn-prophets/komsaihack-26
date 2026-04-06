@@ -9,8 +9,15 @@ import {
   translate,
 } from '@/lib/bot/i18n';
 import type { ResidentLocale } from '@/lib/bot/i18n/types';
+import { renderIdleCommandCard } from '@/lib/bot/renderers/card-renderer';
 import type { BotThread } from '@/lib/bot/types';
 import { createAdminClient } from '@/lib/supabase/admin';
+
+interface IdleCommands {
+  guidedReportCommand: string;
+  quickReportCommand: string;
+  profileCommand: string;
+}
 
 /**
  * Register message handlers for the bot.
@@ -18,6 +25,21 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export function registerMessageHandlers(bot: BotInstance) {
   function normalizeText(input: unknown): string {
     return typeof input === 'string' ? input.trim().toLowerCase() : '';
+  }
+
+  function getIdleCommands(): IdleCommands {
+    return {
+      guidedReportCommand:
+        flowRegistry.get('incident-reporting')?.start?.commands?.[0] ??
+        'report',
+      quickReportCommand:
+        flowRegistry.get('incident-reporting-freeform')?.start?.commands?.[2] ??
+        flowRegistry.get('incident-reporting-freeform')?.start?.commands?.[0] ??
+        'quick report',
+      profileCommand:
+        flowRegistry.get('resident-thread-settings')?.start?.commands?.[0] ??
+        'settings',
+    };
   }
 
   async function getResidentByThreadId(thread: BotThread): Promise<{
@@ -39,37 +61,36 @@ export function registerMessageHandlers(bot: BotInstance) {
     return data;
   }
 
-  function buildAvailableCommandHint(
+  async function postAvailableCommandHint(
+    thread: BotThread,
     locale: ResidentLocale = DEFAULT_LOCALE
-  ): string {
-    const guidedReportCommand =
-      flowRegistry.get('incident-reporting')?.start?.commands?.[0] ?? 'report';
-    const quickReportCommand =
-      flowRegistry.get('incident-reporting-freeform')?.start?.commands?.[2] ??
-      flowRegistry.get('incident-reporting-freeform')?.start?.commands?.[0] ??
-      'quick report';
-    const profileCommand =
-      flowRegistry.get('resident-thread-settings')?.start?.commands?.[0] ??
-      'settings';
+  ): Promise<void> {
+    const { guidedReportCommand, quickReportCommand, profileCommand } =
+      getIdleCommands();
 
-    if (!guidedReportCommand && !quickReportCommand && !profileCommand) {
-      return translate('handler.flow_complete.hint', locale);
-    }
-
-    return [
-      translate('handler.start.hint_intro', locale),
-      translate('handler.start.hint_guided_report', locale, {
-        command: guidedReportCommand,
-      }),
-      translate('handler.start.hint_quick_report', locale, {
-        command: quickReportCommand,
-      }),
-      translate('handler.start.hint_profile', locale, {
-        command: profileCommand,
-      }),
-      '',
-      translate('handler.start.hint_tip', locale),
-    ].join('\n');
+    await renderIdleCommandCard(thread, {
+      title: translate('handler.start.hint_intro', locale),
+      options: [
+        {
+          command: guidedReportCommand,
+          description: translate(
+            'handler.start.option_guided_report_desc',
+            locale
+          ),
+        },
+        {
+          command: quickReportCommand,
+          description: translate(
+            'handler.start.option_quick_report_desc',
+            locale
+          ),
+        },
+        {
+          command: profileCommand,
+          description: translate('handler.start.option_profile_desc', locale),
+        },
+      ],
+    });
   }
 
   async function resolveThreadLocale(
@@ -328,7 +349,7 @@ export function registerMessageHandlers(bot: BotInstance) {
         : translate('handler.start.welcome', locale);
 
       await thread.post(welcomeMsg);
-      await thread.post(buildAvailableCommandHint(locale));
+      await postAvailableCommandHint(thread as BotThread, locale);
     } catch (error) {
       console.error('Error in onNewMention handler:', error);
       await thread.post(translate('error.unexpected'));
@@ -365,7 +386,7 @@ export function registerMessageHandlers(bot: BotInstance) {
 
       if (!state) {
         const locale = await resolveThreadLocale(thread as BotThread);
-        await thread.post(buildAvailableCommandHint(locale));
+        await postAvailableCommandHint(thread as BotThread, locale);
         return;
       }
 
@@ -376,7 +397,7 @@ export function registerMessageHandlers(bot: BotInstance) {
       }
 
       if (flowEngine.isFlowComplete(flow, state)) {
-        await thread.post(buildAvailableCommandHint(state.locale));
+        await postAvailableCommandHint(thread as BotThread, state.locale);
         return;
       }
 
@@ -397,6 +418,25 @@ export function registerMessageHandlers(bot: BotInstance) {
     }
 
     try {
+      if (
+        event.actionId === 'idle_start_flow' &&
+        typeof event.value === 'string' &&
+        event.value.trim().length > 0
+      ) {
+        const resident = await getResidentByThreadId(event.thread as BotThread);
+        const hasResident = Boolean(resident);
+
+        const started = await handleFlowStartCommand(
+          event.thread as BotThread,
+          event.value,
+          { hasResident }
+        );
+
+        if (started) {
+          return;
+        }
+      }
+
       await processFlowInput(event.thread as BotThread, event, {
         requireSelectionStep: true,
       });
