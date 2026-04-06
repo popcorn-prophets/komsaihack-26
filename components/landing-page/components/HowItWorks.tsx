@@ -196,13 +196,16 @@ export function HowItWorks() {
           {/* Right: Content — fixed height so it never shifts */}
           <div className="flex flex-col justify-center" style={{ height: 500 }}>
             <div className="flex flex-col space-y-8">
-              <div className="space-y-4">
-                {/* Step badge */}
+              <div className="space-y-6">
+                {/* Updated Step badge to match uploaded icon style */}
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <StepIcon className="w-6 h-6 text-slate-600 dark:text-white/80" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-[#fcfcfc] dark:bg-white/5 rounded-[22%] border border-black/5 dark:border-white/10 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] dark:shadow-none">
+                    <StepIcon
+                      className="w-6 h-6 text-slate-500 dark:text-white/80"
+                      strokeWidth={1.5}
+                    />
                   </div>
-                  <span className="text-sm font-semibold text-slate-400 dark:text-white/40 uppercase tracking-widest">
+                  <span className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-[0.2em]">
                     Step {currentStep + 1} of {steps.length}
                   </span>
                 </div>
@@ -213,7 +216,7 @@ export function HowItWorks() {
                 </h3>
 
                 {/* Description */}
-                <p className="text-muted-foreground text-base md:text-lg text-pretty max-w-md">
+                <p className="text-muted-foreground text-base md:text-lg text-pretty max-w-md leading-relaxed">
                   {steps[currentStep].description}
                 </p>
               </div>
