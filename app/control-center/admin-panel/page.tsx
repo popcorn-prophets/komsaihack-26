@@ -70,7 +70,6 @@ export default async function Page({ searchParams }: TeamPageProps) {
         viewerId={viewer.id}
         canManageAdmins={canManageAdmins}
       />
-      TESTING
     </div>
   );
 }
