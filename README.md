@@ -3,11 +3,12 @@
 </p>
 
 <p align="center">
- <strong>Hazard and Emergency Reporting, Monitoring, and Evaluation System</strong>
+ <strong>Project HERMES</strong><br/>
+ Hazard and Emergency Reporting, Monitoring, and Evaluation System
 </p>
 
 <p align="center">
- A centralized disaster communication control center for faster reporting, clearer coordination, and timely public advisories.
+ A real-time disaster communication control center that turns chat messages into actionable incident intelligence.
 </p>
 
 <p align="center">
@@ -18,118 +19,84 @@
  <img src="https://img.shields.io/badge/Chat_Integrations-Telegram%20%26%20Messenger-111111?style=for-the-badge&logo=telegram&logoColor=white&labelColor=000000" alt="Chat integrations badge" />
 </p>
 
-## Overview
+<p align="center">
+ <a href="https://project-hermes-drrm.vercel.app/" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/VIEW%20LIVE%20DEMO-FFB000?style=for-the-badge&logo=vercel&logoColor=000000&labelColor=FFD166" alt="View Live Demo" />
+ </a>
+</p>
 
-Project HERMES is a disaster communication platform for local DRRM offices.
+Project HERMES helps communities respond faster during disasters.
 
-In simple terms, it helps people report incidents through chat, then helps responders see those reports in one control center.
+Instead of forcing residents to fill long forms, HERMES lets them report incidents through familiar chat apps. The platform then uses AI to convert unstructured messages into structured incident reports, so responders can act quickly with better situational awareness.
 
-Residents can send natural, free-form messages (the way they normally chat). HERMES then helps turn those messages into a structured report that responders can review and act on quickly.
+For DRRM offices, HERMES is a single control center for incident intake, validation, map-based monitoring, and public advisories.
 
-## Why This Project Exists
+## The Problem
 
-During emergencies, communication is often slow and scattered.
+Emergency communication often breaks down when speed matters most.
 
-Common problems include:
+- Reports arrive in inconsistent formats.
+- Teams manually parse messages, which delays response.
+- Critical updates are spread across disconnected channels.
+- Responders struggle to keep a real-time, city-wide picture.
 
-- People report incidents in different formats, so details are hard to process quickly.
-- Important updates are spread across multiple channels.
-- Responders need a faster view of what is happening right now.
+## Our Solution
 
-Project HERMES exists to bring reports and advisories into one place, so response teams can make faster, better decisions.
+HERMES connects residents and responders through one coordinated workflow:
 
-## Key Features
+1. Residents submit incident reports through chat.
+2. AI extracts key fields such as type, location, time, severity, and description.
+3. Responders validate and manage reports in a live dashboard.
+4. DRRM teams send advisories back to affected communities.
 
-- Chat-based incident reporting through familiar messaging apps
-- AI-assisted parsing of free-form messages into structured incident details
-- Real-time incident feed for responders
-- Map view to spot incident locations quickly
-- Advisory broadcasting for public information updates
-- Targeted advisories by location or incident context
-- Role-based dashboard access for responder and admin workflows
+This creates a closed loop: report, verify, respond, inform.
 
-## How to Use
+## Who Benefits
 
-### For Residents
+### Residents
 
-1. Open the official HERMES bot in your messaging app.
-2. Send a message describing what happened.
-3. Include key details if possible (where, when, and what is happening).
-4. Wait for confirmation that your report was received.
-5. Watch for follow-up advisories and safety updates.
+- Faster way to report emergencies
+- Easier access to official updates and safety instructions
 
-Example:
+### DRRMO Officers and Responders
+
+- Faster triage and incident understanding
+- Better visibility through live feed and map views
+- Easier public communication through targeted advisories
+
+## Real-Life Scenario
+
+During heavy rain, a resident sends:
 
 "Flooding near the public market since 6:30 PM. Water is knee-deep and rising."
 
-### For DRRM Responders
+HERMES automatically interprets the message, drafts a structured incident report, and surfaces it in the responder dashboard with location context. A responder validates the report, updates status, and sends a localized advisory to nearby residents.
 
-1. Sign in to the HERMES control center dashboard.
-2. Review incoming reports in the live incident list and map.
-3. Validate or edit report details when needed.
-4. Update incident status and dispatch actions.
-5. Send advisories to affected residents.
+Result: less manual parsing, faster response, better public awareness.
 
-Real-life use case:
+## Core Capabilities
 
-- A resident reports a flood through chat.
-- The system organizes the message into a report.
-- A responder validates the report and sends an advisory to nearby residents.
+- Chat-based incident reporting (Telegram and Messenger)
+- AI-assisted report structuring from free-form text
+- Real-time incident monitoring dashboard
+- Map-based incident visualization
+- Advisory broadcasting and targeting
+- Role-based access for responder and admin workflows
 
-## Tech Stack
+## Technology
 
-High-level tools used in this project:
+Built with modern, production-ready web technologies:
 
-- Next.js (web app framework)
-- Supabase + PostgreSQL (database and backend services)
-- Vercel AI SDK (AI-assisted message understanding)
-- Vercel Chat SDK (chat integrations)
-- Tailwind CSS + shadcn/ui (interface design)
-- MapLibre GL (map visualization)
+- Next.js for the application framework
+- Supabase and PostgreSQL for backend and data storage
+- Vercel AI SDK for AI-assisted language understanding
+- Vercel Chat SDK for messaging integrations
+- Tailwind CSS and shadcn/ui for interface design
+- MapLibre GL for map visualization
 
-## Getting Started
+## Getting Started (For Reviewers)
 
-You only need a few steps to run HERMES locally.
-
-### 1. Install dependencies
-
-```bash
-pnpm install
-```
-
-### 2. Add environment settings
-
-```bash
-cp .env.example .env.local
-```
-
-Then fill in the required values in `.env.local`.
-
-<!-- TODO: add a quick list of required environment variables -->
-
-### 3. Start local services
-
-```bash
-supabase start
-```
-
-### 4. Run the app
-
-```bash
-pnpm dev
-```
-
-Open `http://localhost:3000` in your browser.
-
-Optional (for Telegram webhook testing):
-
-See [docs/setup.md](docs/setup.md) for bot setup and webhook instructions.
-
-## Contributing
-
-Contributions are welcome.
-
-If you want to help, please read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+To run the project locally, see [docs/setup.md](docs/setup.md).
 
 ## License
 
