@@ -87,7 +87,9 @@ export default async function Page() {
       .from('incidents')
       .select(
         'id, description, incident_time, location, location_description, severity, status'
-      );
+      )
+      .neq('status', 'resolved') //This is the not equal
+      .neq('status', 'dismissed');
     data = adminResult.data;
     error = adminResult.error;
   } catch (adminError) {
@@ -96,7 +98,9 @@ export default async function Page() {
       .from('incidents')
       .select(
         'id, description, incident_time, location, location_description, severity, status'
-      );
+      )
+      .neq('status', 'resolved')
+      .neq('status', 'dismissed');
     data = userResult.data;
     error = userResult.error;
     console.warn('Admin client unavailable for map incidents.', adminError);
