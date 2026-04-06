@@ -19,6 +19,12 @@ import {
   Incident,
   updateIncidentEntry,
 } from '@/lib/supabase/reports';
+import {
+  formatIncidentSeverityLabel,
+  formatIncidentStatusLabel,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+} from '@/lib/incidents/shared';
 import { convertTime, hexToCoordinates } from '@/lib/utils';
 import React from 'react';
 
@@ -203,11 +209,13 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
               <SelectValue placeholder="--Select Severity--" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="validated">Validated</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="dismissed">Dismissed</SelectItem>
+              <SelectGroup>
+                {INCIDENT_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {formatIncidentStatusLabel(status)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </Field>
@@ -222,10 +230,13 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
               <SelectValue placeholder="--Select Status--" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="moderate">Moderate</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
+              <SelectGroup>
+                {INCIDENT_SEVERITIES.map((severity) => (
+                  <SelectItem key={severity} value={severity}>
+                    {formatIncidentSeverityLabel(severity)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </Field>

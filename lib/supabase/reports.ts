@@ -1,4 +1,9 @@
 import { createClient } from '@/lib/supabase/client';
+import {
+  toIncidentBoardEntry,
+  type IncidentBoardEntry,
+} from '@/lib/incidents/shared';
+import type { Tables } from '@/types/supabase';
 
 // Initialize Supabase client
 const supabase = createClient();
@@ -63,8 +68,6 @@ export async function fetchAllIncidents(): Promise<Incident[] | null> {
       incident_name: (incident.incident_types as unknown as { name: string })
         ?.name,
     }));
-
-    console.log(transformedData);
 
     return transformedData as Incident[];
   } catch (error) {
@@ -255,44 +258,28 @@ export async function fetchResidentName(id: string): Promise<string | null> {
   }
 }
 
-export async function fetchKanbanCategoryContents(
-  category: string,
-  count: number = 50
-): Promise<Incident[] | null> {
+export async function fetchIncidentBoardEntries(): Promise<
+  IncidentBoardEntry[]
+> {
   try {
     const { data, error } = await supabase
       .from('incidents_with_details')
       .select(
-        `id,
-        reported_by,
-        incident_type_id,
-        incident_type_name,
-        reporter_name,
-        latitude,
-        longitude,
-        location_description,
-        severity,
-        description,
-        status,
-        incident_time,
-        created_at,
-        updated_at`
+        'id, reported_by, incident_type_name, severity, status, incident_time, location_description, description, reporter_name'
       )
-      .eq('status', category)
-      .limit(count);
+      .order('incident_time', { ascending: false });
+
     if (error) {
-      console.error('Error fetching incident:', error);
-      return null;
+      console.error('Error fetching board incidents:', error);
+      return [];
     }
 
-    const transformedData = (data as IncidentWithDetailsRow[])
-      .map(mapDetailsRowToIncident)
-      .filter((incident): incident is Incident => incident !== null);
-
-    return transformedData as Incident[];
+    return ((data ?? []) as Tables<'incidents_with_details'>[])
+      .map((incident) => toIncidentBoardEntry(incident))
+      .filter((incident): incident is IncidentBoardEntry => incident !== null);
   } catch (error) {
-    console.error('Database fetch error:', error);
-    return null;
+    console.error('Board fetch error:', error);
+    return [];
   }
 }
 

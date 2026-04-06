@@ -3,23 +3,24 @@ import 'server-only';
 import { z } from 'zod';
 
 import { formatDateTime } from '@/lib/date';
+import {
+  formatIncidentSeverityLabel,
+  formatIncidentStatusLabel,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+  type IncidentSeverity,
+  type IncidentStatus,
+} from '@/lib/incidents/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Constants, type Enums, type Tables } from '@/types/supabase';
+import { type Enums, type Tables } from '@/types/supabase';
 
 import {
   INCIDENT_EXPORT_TIMEZONE,
   INCIDENT_EXPORT_TIMEZONE_OFFSET,
 } from './export-config';
 
-type IncidentSeverity = Enums<'incident_severity'>;
-type IncidentStatus = Enums<'incident_status'>;
 type ResidentPlatform = Enums<'resident_platform'>;
 type IncidentExportViewRow = Tables<'incidents_with_details'>;
-
-const INCIDENT_SEVERITIES = Constants.public.Enums
-  .incident_severity as readonly IncidentSeverity[];
-const INCIDENT_STATUSES = Constants.public.Enums
-  .incident_status as readonly IncidentStatus[];
 
 const dateInputSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -89,6 +90,8 @@ export type IncidentExportDataset = {
   endDate: string | null;
   dateRangeLabel: string;
 };
+
+export { formatIncidentSeverityLabel, formatIncidentStatusLabel };
 
 function getFirstString(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
@@ -171,38 +174,6 @@ function formatTimestampLabel(value: string) {
 
 function formatNullableText(value: string | null, fallback: string) {
   return value?.trim() || fallback;
-}
-
-export function formatIncidentSeverityLabel(value: IncidentSeverity) {
-  switch (value) {
-    case 'low':
-      return 'Low';
-    case 'moderate':
-      return 'Moderate';
-    case 'high':
-      return 'High';
-    case 'critical':
-      return 'Critical';
-    default:
-      return value;
-  }
-}
-
-export function formatIncidentStatusLabel(value: IncidentStatus) {
-  switch (value) {
-    case 'new':
-      return 'New';
-    case 'validated':
-      return 'Validated';
-    case 'in_progress':
-      return 'In Progress';
-    case 'resolved':
-      return 'Resolved';
-    case 'dismissed':
-      return 'Dismissed';
-    default:
-      return value;
-  }
 }
 
 export function formatReporterPlatformLabel(value: ResidentPlatform | null) {

@@ -9,13 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { fetchIncidents } from '@/lib/supabase/reports';
 import * as React from 'react';
-import KanbanContent from './kanban-view/content';
-import { ReportTableCard } from './report-table-view/report-table-card';
+import IncidentKanbanBoard from './kanban-view/board';
 import { ChatBox } from './report-view/chatbox';
 import { ReportContainer } from './report-view/report-container';
 import IncidentCard from './report-view/report-list/incidents-card';
 
 export function IncidentTabs() {
+  const [activeTab, setActiveTab] = React.useState<'reports' | 'kanban'>(
+    'reports'
+  );
   const [selectedIncidentID, setSelectedIncidentID] = React.useState<
     string | null
   >(null);
@@ -35,8 +37,17 @@ export function IncidentTabs() {
     setSelectedIncidentID(clickedIncidentID);
   };
 
+  const handleOpenFullReport = (incidentId: string) => {
+    setSelectedIncidentID(incidentId);
+    setActiveTab('reports');
+  };
+
   return (
-    <Tabs defaultValue="reports" className="flex w-full min-h-0 flex-col gap-2">
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as 'reports' | 'kanban')}
+      className="flex w-full min-h-0 flex-col gap-2"
+    >
       <TabsList variant="line" className="w-full shrink-0 flex-row">
         <TabsTrigger value="reports">Reports</TabsTrigger>
         <TabsTrigger value="kanban">Kanban</TabsTrigger>
@@ -79,18 +90,11 @@ export function IncidentTabs() {
           </ResizablePanelGroup>
         )}
       </TabsContent>
-      <TabsContent value="kanban" className="flex flex-row w-full gap-4 h-full">
-        <KanbanContent title="New" />
-        <KanbanContent title="Validated" />
-        <KanbanContent title="In_Progress" />
-        <KanbanContent title="Resolved" />
-        <KanbanContent title="Dismissed" />
-      </TabsContent>
-      <TabsContent
-        value="reportTable"
-        className="flex flex-row w-full gap-4 h-full"
-      >
-        <ReportTableCard />
+      <TabsContent value="kanban" className="m-0 w-full min-h-0 flex-1">
+        <IncidentKanbanBoard
+          onIncidentSelect={handleOnIncidentClick}
+          onOpenFullReport={handleOpenFullReport}
+        />
       </TabsContent>
     </Tabs>
   );
