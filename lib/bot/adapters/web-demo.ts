@@ -28,9 +28,13 @@ export interface WebDemoThreadId {
 }
 
 export interface WebDemoIncomingPayload {
+  actionId?: string;
+  actionMessageId?: string;
+  eventType?: 'action' | 'message';
   sessionId: string;
   text: string;
   userName?: string;
+  value?: string;
 }
 
 export interface WebDemoCardAction {
@@ -242,10 +246,8 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
 
   async handleWebhook(
     request: Request,
-    _options?: WebhookOptions
+    options?: WebhookOptions
   ): Promise<Response> {
-    void _options;
-
     if (!this.chat) {
       return Response.json(
         { error: 'Adapter is not initialized.' },
@@ -267,15 +269,56 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
     const sessionId = payload.sessionId?.trim();
     const text = payload.text?.trim();
 
-    if (!sessionId || !text) {
+    if (!sessionId) {
       return Response.json(
-        { error: 'sessionId and text are required.' },
+        { error: 'sessionId is required.' },
         { status: 400 }
       );
     }
 
     const threadId = encodeWebDemoThreadId(sessionId);
     const userName = payload.userName?.trim() || 'resident';
+
+    if (payload.eventType === 'action') {
+      const actionId = payload.actionId?.trim();
+      const actionMessageId = payload.actionMessageId?.trim();
+
+      if (!actionId || !actionMessageId) {
+        return Response.json(
+          { error: 'actionId and actionMessageId are required for actions.' },
+          { status: 400 }
+        );
+      }
+
+      this.chat.processAction(
+        {
+          adapter: this,
+          actionId,
+          messageId: actionMessageId,
+          raw: payload,
+          threadId,
+          user: {
+            fullName: userName,
+            isBot: false,
+            isMe: false,
+            userId: `${sessionId}-resident`,
+            userName,
+          },
+          value: payload.value,
+        },
+        options
+      );
+
+      return Response.json({ ok: true, threadId });
+    }
+
+    if (!text) {
+      return Response.json(
+        { error: 'text is required for messages.' },
+        { status: 400 }
+      );
+    }
+
     const raw: WebDemoRawMessage = {
       author: {
         isMe: false,

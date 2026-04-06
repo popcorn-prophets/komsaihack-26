@@ -136,7 +136,13 @@ export function DemoChatInterface({
     return 'Start by saying hi, then follow the bot prompts.';
   }, [messages.length]);
 
-  async function sendMessageText(message: string): Promise<void> {
+  async function sendEvent(payload: {
+    actionId?: string;
+    actionMessageId?: string;
+    eventType: 'action' | 'message';
+    message?: string;
+    value?: string;
+  }): Promise<void> {
     if (!sessionId) {
       return;
     }
@@ -147,9 +153,13 @@ export function DemoChatInterface({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        actionId: payload.actionId,
+        actionMessageId: payload.actionMessageId,
+        eventType: payload.eventType,
         sessionId,
-        message,
+        message: payload.message,
         userName,
+        value: payload.value,
       }),
     });
 
@@ -157,11 +167,11 @@ export function DemoChatInterface({
       throw new Error('Unable to send message.');
     }
 
-    const payload = (await response.json()) as {
+    const responsePayload = (await response.json()) as {
       messages?: DemoChatMessage[];
     };
 
-    setMessages(payload.messages ?? []);
+    setMessages(responsePayload.messages ?? []);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -175,7 +185,10 @@ export function DemoChatInterface({
     setIsLoading(true);
 
     try {
-      await sendMessageText(message);
+      await sendEvent({
+        eventType: 'message',
+        message,
+      });
       setInput('');
     } catch (error) {
       console.error(error);
@@ -184,7 +197,10 @@ export function DemoChatInterface({
     }
   }
 
-  async function handleActionClick(action: DemoChatAction): Promise<void> {
+  async function handleActionClick(
+    action: DemoChatAction,
+    messageId: string
+  ): Promise<void> {
     if (isLoading) {
       return;
     }
@@ -192,7 +208,12 @@ export function DemoChatInterface({
     setIsLoading(true);
 
     try {
-      await sendMessageText(action.value);
+      await sendEvent({
+        actionId: action.id,
+        actionMessageId: messageId,
+        eventType: 'action',
+        value: action.value,
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -266,7 +287,7 @@ export function DemoChatInterface({
                               variant={variant}
                               disabled={isLoading}
                               onClick={() => {
-                                void handleActionClick(action);
+                                void handleActionClick(action, message.id);
                               }}
                             >
                               {action.label}

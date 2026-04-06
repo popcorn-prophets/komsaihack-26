@@ -171,16 +171,24 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   let payload: {
+    actionId?: unknown;
+    actionMessageId?: unknown;
+    eventType?: unknown;
     sessionId?: unknown;
     message?: unknown;
     userName?: unknown;
+    value?: unknown;
   };
 
   try {
     payload = (await request.json()) as {
+      actionId?: unknown;
+      actionMessageId?: unknown;
+      eventType?: unknown;
       sessionId?: unknown;
       message?: unknown;
       userName?: unknown;
+      value?: unknown;
     };
   } catch {
     return toErrorResponse('Invalid JSON payload.', 400);
@@ -190,15 +198,31 @@ export async function POST(request: Request) {
     typeof payload.sessionId === 'string' ? payload.sessionId.trim() : '';
   const message =
     typeof payload.message === 'string' ? payload.message.trim() : '';
+  const eventType =
+    payload.eventType === 'action' ? 'action' : ('message' as const);
+  const actionId =
+    typeof payload.actionId === 'string' ? payload.actionId.trim() : '';
+  const actionMessageId =
+    typeof payload.actionMessageId === 'string'
+      ? payload.actionMessageId.trim()
+      : '';
   const userName =
     typeof payload.userName === 'string' ? payload.userName.trim() : undefined;
+  const value = typeof payload.value === 'string' ? payload.value : undefined;
 
   if (!isValidSessionId(sessionId)) {
     return toErrorResponse('Valid sessionId is required.', 400);
   }
 
-  if (!message) {
+  if (eventType === 'message' && !message) {
     return toErrorResponse('message is required.', 400);
+  }
+
+  if (eventType === 'action' && (!actionId || !actionMessageId)) {
+    return toErrorResponse(
+      'actionId and actionMessageId are required for actions.',
+      400
+    );
   }
 
   const threadId = encodeWebDemoThreadId(sessionId);
@@ -209,9 +233,13 @@ export async function POST(request: Request) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      actionId: eventType === 'action' ? actionId : undefined,
+      actionMessageId: eventType === 'action' ? actionMessageId : undefined,
+      eventType,
       sessionId,
-      text: message,
+      text: eventType === 'message' ? message : '',
       userName,
+      value: eventType === 'action' ? value : undefined,
     }),
   });
 
