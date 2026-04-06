@@ -1,9 +1,9 @@
 import { bot } from '@/lib/bot';
-import type { WebDemoCardAction } from '@/lib/bot/adapters/web-demo';
+import type { WebChatCardAction } from '@/lib/bot/adapters/web-chat';
 import {
-  encodeWebDemoThreadId,
-  getWebDemoActionCacheKey,
-} from '@/lib/bot/adapters/web-demo';
+  encodeWebChatThreadId,
+  getWebChatActionCacheKey,
+} from '@/lib/bot/adapters/web-chat';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 const CHAT_STATE_KEY_PREFIX = 'chat-sdk';
@@ -21,8 +21,8 @@ type PersistedChatMessage = {
   };
 };
 
-type DemoChatMessage = {
-  actions?: WebDemoCardAction[];
+type WebChatMessage = {
+  actions?: WebChatCardAction[];
   id: string;
   content: string;
   role: 'user' | 'assistant';
@@ -30,14 +30,14 @@ type DemoChatMessage = {
 };
 
 type PersistedActionCache = {
-  actions?: WebDemoCardAction[];
+  actions?: WebChatCardAction[];
 };
 
 function getChatHistoryListKey(threadId: string) {
   return `${CHAT_MESSAGE_HISTORY_PREFIX}${threadId}`;
 }
 
-function parsePersistedChatMessage(value: string): DemoChatMessage | null {
+function parsePersistedChatMessage(value: string): WebChatMessage | null {
   try {
     const parsed = JSON.parse(value) as PersistedChatMessage;
     const timestamp = parsed.metadata?.dateSent;
@@ -79,7 +79,7 @@ async function loadPersistedThreadMessages(threadId: string) {
       (row) => !row.expires_at || new Date(row.expires_at).getTime() > now
     )
     .map((row) => parsePersistedChatMessage(row.value))
-    .filter((message): message is DemoChatMessage => message !== null)
+    .filter((message): message is WebChatMessage => message !== null)
     .slice(-MESSAGE_HISTORY_LIMIT);
 
   const assistantMessages = messages.filter(
@@ -91,7 +91,7 @@ async function loadPersistedThreadMessages(threadId: string) {
   }
 
   const actionCacheKeys = assistantMessages.map((message) =>
-    getWebDemoActionCacheKey(threadId, message.id)
+    getWebChatActionCacheKey(threadId, message.id)
   );
 
   const { data: actionRows, error: actionError } = await supabase
@@ -104,7 +104,7 @@ async function loadPersistedThreadMessages(threadId: string) {
     throw actionError;
   }
 
-  const actionMap = new Map<string, WebDemoCardAction[]>();
+  const actionMap = new Map<string, WebChatCardAction[]>();
 
   for (const row of actionRows ?? []) {
     if (row.expires_at && new Date(row.expires_at).getTime() <= now) {
@@ -129,7 +129,7 @@ async function loadPersistedThreadMessages(threadId: string) {
     }
 
     const actions = actionMap.get(
-      getWebDemoActionCacheKey(threadId, message.id)
+      getWebChatActionCacheKey(threadId, message.id)
     );
     if (!actions || actions.length === 0) {
       return message;
@@ -158,14 +158,14 @@ export async function GET(request: Request) {
     return toErrorResponse('Valid sessionId is required.', 400);
   }
 
-  const threadId = encodeWebDemoThreadId(sessionId);
+  const threadId = encodeWebChatThreadId(sessionId);
 
   try {
     const messages = await loadPersistedThreadMessages(threadId);
     return Response.json({ messages });
   } catch (error) {
-    console.error('Failed to load demo chat history:', error);
-    return toErrorResponse('Failed to load demo chat history.', 500);
+    console.error('Failed to load web chat history:', error);
+    return toErrorResponse('Failed to load web chat history.', 500);
   }
 }
 
@@ -225,9 +225,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const threadId = encodeWebDemoThreadId(sessionId);
+  const threadId = encodeWebChatThreadId(sessionId);
 
-  const adapterRequest = new Request('http://local/webdemo', {
+  const adapterRequest = new Request('http://local/webchat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -244,7 +244,7 @@ export async function POST(request: Request) {
   });
 
   try {
-    const adapterResponse = await bot.webhooks.webdemo(adapterRequest);
+    const adapterResponse = await bot.webhooks.webchat(adapterRequest);
 
     if (!adapterResponse.ok) {
       const errorText = await adapterResponse.text();
@@ -257,7 +257,7 @@ export async function POST(request: Request) {
     const messages = await loadPersistedThreadMessages(threadId);
     return Response.json({ messages });
   } catch (error) {
-    console.error('Failed to send demo chat message:', error);
-    return toErrorResponse('Failed to send demo chat message.', 500);
+    console.error('Failed to send web chat message:', error);
+    return toErrorResponse('Failed to send web chat message.', 500);
   }
 }

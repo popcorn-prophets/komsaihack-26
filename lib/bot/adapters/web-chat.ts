@@ -22,12 +22,12 @@ import {
   toPlainText,
 } from 'chat';
 
-export interface WebDemoThreadId {
+export interface WebChatThreadId {
   channel: 'dm';
   sessionId: string;
 }
 
-export interface WebDemoIncomingPayload {
+export interface WebChatIncomingPayload {
   actionId?: string;
   actionMessageId?: string;
   eventType?: 'action' | 'message';
@@ -37,14 +37,14 @@ export interface WebDemoIncomingPayload {
   value?: string;
 }
 
-export interface WebDemoCardAction {
+export interface WebChatCardAction {
   id: string;
   label: string;
   style?: 'default' | 'primary' | 'danger';
   value: string;
 }
 
-interface WebDemoRawMessage {
+interface WebChatRawMessage {
   author: {
     isMe: boolean;
     userId: string;
@@ -56,9 +56,9 @@ interface WebDemoRawMessage {
   threadId: string;
 }
 
-const THREAD_PREFIX = 'webdemo:dm:';
-const ACTION_CACHE_PREFIX = 'webdemo:actions:';
-const BOT_USER_ID = 'webdemo-bot';
+const THREAD_PREFIX = 'webchat:dm:';
+const ACTION_CACHE_PREFIX = 'webchat:actions:';
+const BOT_USER_ID = 'webchat-bot';
 const BOT_USER_NAME = 'project_hermes_bot';
 const ACTION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -118,8 +118,8 @@ function toCardElement(message: AdapterPostableMessage): CardElement | null {
 
 function collectActionsFromChildren(
   children: CardChild[]
-): WebDemoCardAction[] {
-  const actions: WebDemoCardAction[] = [];
+): WebChatCardAction[] {
+  const actions: WebChatCardAction[] = [];
 
   for (const child of children) {
     if (child.type === 'section') {
@@ -161,14 +161,14 @@ function collectActionsFromChildren(
   return actions;
 }
 
-function parseThreadId(threadId: string): WebDemoThreadId {
+function parseThreadId(threadId: string): WebChatThreadId {
   if (!threadId.startsWith(THREAD_PREFIX)) {
-    throw new Error('Invalid web demo thread id.');
+    throw new Error('Invalid web chat thread id.');
   }
 
   const sessionId = threadId.slice(THREAD_PREFIX.length);
   if (!sessionId) {
-    throw new Error('Missing session id in web demo thread id.');
+    throw new Error('Missing session id in web chat thread id.');
   }
 
   return {
@@ -177,8 +177,8 @@ function parseThreadId(threadId: string): WebDemoThreadId {
   };
 }
 
-function createMessage(raw: WebDemoRawMessage): Message<WebDemoRawMessage> {
-  const data: MessageData<WebDemoRawMessage> = {
+function createMessage(raw: WebChatRawMessage): Message<WebChatRawMessage> {
+  const data: MessageData<WebChatRawMessage> = {
     attachments: [],
     author: buildAuthor(raw.author.isMe, raw.author.userName),
     formatted: parseMarkdown(raw.text) as FormattedContent,
@@ -195,19 +195,19 @@ function createMessage(raw: WebDemoRawMessage): Message<WebDemoRawMessage> {
   return new Message(data);
 }
 
-export function encodeWebDemoThreadId(sessionId: string): string {
+export function encodeWebChatThreadId(sessionId: string): string {
   return `${THREAD_PREFIX}${sessionId}`;
 }
 
-export function getWebDemoActionCacheKey(
+export function getWebChatActionCacheKey(
   threadId: string,
   messageId: string
 ): string {
   return `${ACTION_CACHE_PREFIX}${threadId}:${messageId}`;
 }
 
-class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
-  readonly name = 'webdemo';
+class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
+  readonly name = 'webchat';
   readonly persistMessageHistory = true;
   readonly userName = BOT_USER_NAME;
 
@@ -217,11 +217,11 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
     this.chat = chat;
   }
 
-  encodeThreadId(platformData: WebDemoThreadId): string {
+  encodeThreadId(platformData: WebChatThreadId): string {
     return `${THREAD_PREFIX}${platformData.sessionId}`;
   }
 
-  decodeThreadId(threadId: string): WebDemoThreadId {
+  decodeThreadId(threadId: string): WebChatThreadId {
     return parseThreadId(threadId);
   }
 
@@ -236,7 +236,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
     return true;
   }
 
-  parseMessage(raw: WebDemoRawMessage): Message<WebDemoRawMessage> {
+  parseMessage(raw: WebChatRawMessage): Message<WebChatRawMessage> {
     return createMessage(raw);
   }
 
@@ -259,9 +259,9 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
       return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     }
 
-    let payload: WebDemoIncomingPayload;
+    let payload: WebChatIncomingPayload;
     try {
-      payload = (await request.json()) as WebDemoIncomingPayload;
+      payload = (await request.json()) as WebChatIncomingPayload;
     } catch {
       return Response.json({ error: 'Invalid JSON payload.' }, { status: 400 });
     }
@@ -276,7 +276,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
       );
     }
 
-    const threadId = encodeWebDemoThreadId(sessionId);
+    const threadId = encodeWebChatThreadId(sessionId);
     const userName = payload.userName?.trim() || 'resident';
 
     if (payload.eventType === 'action') {
@@ -319,7 +319,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
       );
     }
 
-    const raw: WebDemoRawMessage = {
+    const raw: WebChatRawMessage = {
       author: {
         isMe: false,
         userId: `${sessionId}-resident`,
@@ -354,7 +354,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
   async fetchMessages(
     _threadId: string,
     _options?: FetchOptions
-  ): Promise<FetchResult<WebDemoRawMessage>> {
+  ): Promise<FetchResult<WebChatRawMessage>> {
     void _threadId;
     void _options;
 
@@ -364,7 +364,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
   async postMessage(
     threadId: string,
     message: AdapterPostableMessage
-  ): Promise<RawMessage<WebDemoRawMessage>> {
+  ): Promise<RawMessage<WebChatRawMessage>> {
     const messageId = createMessageId();
     const text = toMessageText(message);
     const card = toCardElement(message);
@@ -373,7 +373,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
       const actions = collectActionsFromChildren(card.children);
 
       if (actions.length > 0) {
-        const actionCacheKey = getWebDemoActionCacheKey(threadId, messageId);
+        const actionCacheKey = getWebChatActionCacheKey(threadId, messageId);
         await this.chat
           .getState()
           .set(actionCacheKey, { actions }, ACTION_CACHE_TTL_MS);
@@ -401,7 +401,7 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
     _threadId: string,
     _messageId: string,
     _message: AdapterPostableMessage
-  ): Promise<RawMessage<WebDemoRawMessage>> {
+  ): Promise<RawMessage<WebChatRawMessage>> {
     void _threadId;
     void _messageId;
     void _message;
@@ -456,13 +456,13 @@ class WebDemoAdapter implements Adapter<WebDemoThreadId, WebDemoRawMessage> {
     void _threadId;
     void _status;
 
-    // No-op for demo web adapter.
+    // No-op for web chat adapter.
   }
 }
 
-export function createWebDemoAdapter(): Adapter<
-  WebDemoThreadId,
-  WebDemoRawMessage
+export function createWebChatAdapter(): Adapter<
+  WebChatThreadId,
+  WebChatRawMessage
 > {
-  return new WebDemoAdapter();
+  return new WebChatAdapter();
 }

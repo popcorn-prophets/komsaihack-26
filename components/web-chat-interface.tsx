@@ -15,22 +15,22 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Send } from 'lucide-react';
 
-type DemoChatAction = {
+type WebChatAction = {
   id: string;
   label: string;
   style?: 'default' | 'primary' | 'danger';
   value: string;
 };
 
-type DemoChatMessage = {
-  actions?: DemoChatAction[];
+type WebChatMessage = {
+  actions?: WebChatAction[];
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: string;
 };
 
-interface DemoChatInterfaceProps {
+interface WebChatInterfaceProps {
   apiEndpoint?: string;
   className?: string;
   description?: string;
@@ -38,25 +38,25 @@ interface DemoChatInterfaceProps {
   userName?: string;
 }
 
-const SESSION_STORAGE_KEY = 'hermes-webdemo-session-id';
+const SESSION_STORAGE_KEY = 'hermes-webchat-session-id';
 
 function createSessionId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return `demo_${crypto.randomUUID().replace(/-/g, '')}`;
+    return `webchat_${crypto.randomUUID().replace(/-/g, '')}`;
   }
 
-  return `demo_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  return `webchat_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function DemoChatInterface({
-  apiEndpoint = '/api/demo-chat',
+export function WebChatInterface({
+  apiEndpoint = '/api/web-chat',
   className,
-  description = 'Send messages directly to the bot pipeline used by Telegram and Messenger.',
-  title = 'Web Chat Demo',
-  userName = 'web-demo-user',
-}: DemoChatInterfaceProps) {
+  description = 'Use HERMES Web Chat as an alternative interface to the same chatbot pipeline.',
+  title = 'HERMES Web Chat',
+  userName = 'web-chat-user',
+}: WebChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<DemoChatMessage[]>([]);
+  const [messages, setMessages] = useState<WebChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -105,7 +105,7 @@ export function DemoChatInterface({
         }
 
         const payload = (await response.json()) as {
-          messages?: DemoChatMessage[];
+          messages?: WebChatMessage[];
         };
 
         if (isMounted) {
@@ -168,7 +168,7 @@ export function DemoChatInterface({
     }
 
     const responsePayload = (await response.json()) as {
-      messages?: DemoChatMessage[];
+      messages?: WebChatMessage[];
     };
 
     setMessages(responsePayload.messages ?? []);
@@ -198,7 +198,7 @@ export function DemoChatInterface({
   }
 
   async function handleActionClick(
-    action: DemoChatAction,
+    action: WebChatAction,
     messageId: string
   ): Promise<void> {
     if (isLoading) {
