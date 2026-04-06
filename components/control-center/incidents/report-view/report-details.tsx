@@ -20,6 +20,7 @@ import {
 } from '@/lib/incidents/shared';
 import {
   fetchIncidentById,
+  fetchIncidentTypeID,
   fetchIncidentTypeName,
   fetchResidentName,
   Incident,
@@ -117,6 +118,11 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
             created_at: convertTime(incident.created_at) ?? '',
             updated_at: convertTime(incident.updated_at) ?? '',
           });
+
+          setSelectedIncident({
+            ...incident,
+            incident_name: incidentName ?? '',
+          });
         });
       });
     }
@@ -127,7 +133,6 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     if (incidentID) {
       searchIncidentById(incidentID).then((incident) => {
         retrieveIncidentName(incident);
-        setSelectedIncident(incident);
       });
     }
   }, [incidentID]); // Re-run when incidentID changes
@@ -153,8 +158,13 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
 
   async function updateIncident() {
     if (selectedIncident) {
+      const incidentTypeID =
+        (await fetchIncidentTypeID(formData.incident_name)) ||
+        selectedIncident.incident_type_id;
+
       const updatedIncident: Incident = {
         ...selectedIncident,
+        incident_type_id: incidentTypeID,
         status: formData.status,
         severity: formData.severity,
         location_description: formData.location_description,
@@ -172,6 +182,7 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     if (selectedIncident) {
       setFormData((prev) => ({
         ...prev,
+        incident_name: selectedIncident.incident_name ?? prev.incident_name,
         status: selectedIncident.status,
         severity: selectedIncident.severity,
         location_description: selectedIncident.location_description ?? '',
@@ -243,7 +254,13 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
         </Field>
         <Field>
           <FieldLabel htmlFor="formIncidentType">Incident Type</FieldLabel>
-          <Select value={formData.incident_name} name="incident_name" disabled>
+          <Select
+            value={formData.incident_name}
+            onValueChange={(value) =>
+              handleSelectChange('incident_name', value)
+            }
+            name="incident_name"
+          >
             <SelectTrigger className="w-full" id="formIncidentType">
               <SelectValue placeholder="Select Incident Type" />
             </SelectTrigger>
