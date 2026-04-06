@@ -195,12 +195,12 @@ export async function updateIncidentEntry(incident: Incident) {
 
     if (error) {
       console.error('Error posting incident:', error);
-      return null;
+      return false;
     }
 
     return true;
   } catch (error) {
     console.error('Database fetch error:', error);
-    return null;
+    return false;
   }
 }

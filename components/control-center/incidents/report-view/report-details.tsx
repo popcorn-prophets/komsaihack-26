@@ -151,19 +151,20 @@ export default function ReportDetails({ incidentID }: ReportDetailsProps) {
     }));
   };
 
-  function updateIncident() {
-    // TODO: remove after debugging
-    console.log('Current Form Data:', formData);
-
+  async function updateIncident() {
     if (selectedIncident) {
-      const updatedIncident: Incident | null = selectedIncident;
+      const updatedIncident = {
+        ...selectedIncident,
+        status: formData.status,
+        severity: formData.severity,
+        location_description: formData.location_description,
+        description: formData.description,
+      };
 
-      updatedIncident.status = formData.status;
-      updatedIncident.severity = formData.severity;
-      updatedIncident.location_description = formData.location_description;
-      updatedIncident.description = formData.description;
-
-      updateIncidentEntry(updatedIncident);
+      const success: boolean = await updateIncidentEntry(updatedIncident);
+      if (success) {
+        setSelectedIncident(updatedIncident);
+      }
     }
   }
 
