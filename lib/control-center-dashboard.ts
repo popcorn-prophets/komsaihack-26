@@ -2,7 +2,7 @@ import 'server-only';
 
 import { getAdminPanelData } from '@/lib/auth/admin-panel';
 import { getRecentAdvisories } from '@/lib/advisories/data';
-import { toPoint } from '@/lib/geo';
+import { toCoordinates } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { AuthUser } from '@/lib/auth/types';
@@ -100,29 +100,6 @@ export type DashboardPayload = {
     createdAt: string;
   }>;
 };
-
-function toCoordinates(location: IncidentRow['location']) {
-  const point = toPoint(location);
-  if (point) {
-    const [longitude, latitude] = point.coordinates;
-    return { longitude, latitude };
-  }
-
-  if (typeof location === 'string') {
-    const match = location.match(
-      /^POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)$/i
-    );
-
-    if (match) {
-      return {
-        longitude: Number(match[1]),
-        latitude: Number(match[2]),
-      };
-    }
-  }
-
-  return { longitude: null, latitude: null };
-}
 
 function toDate(value: string | null | undefined) {
   if (!value) return null;

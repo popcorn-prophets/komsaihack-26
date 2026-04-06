@@ -25,4 +25,5 @@ export type DestinationMarker = {
 export type IncidentMapSceneProps = {
   markers: IncidentMarker[];
   destination: DestinationMarker;
+  embedded?: boolean;
 };

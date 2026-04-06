@@ -37,13 +37,18 @@ export type {
 export function IncidentMapScene({
   markers,
   destination,
+  embedded = false,
 }: IncidentMapSceneProps) {
   const isMobile = useIsMobile();
+  const embeddedDefaultZoom = isMobile ? 11 : 12;
+  const defaultZoom = isMobile ? 11 : 12;
   const [activeRouteMarkerId, setActiveRouteMarkerId] = useState<string | null>(
     null
   );
   const [openMarkerId, setOpenMarkerId] = useState<string | null>(null);
-  const [mapZoom, setMapZoom] = useState<number>(13);
+  const [mapZoom, setMapZoom] = useState<number>(
+    embedded ? embeddedDefaultZoom : defaultZoom
+  );
   const [activeDestination, setActiveDestination] = useState(destination);
   const [locationStatus, setLocationStatus] = useState<
     'idle' | 'requesting' | 'granted' | 'fallback'
@@ -68,17 +73,16 @@ export function IncidentMapScene({
       ? activeDestination
       : null;
   const baseZoom =
-    showIncidentMarkers && selectedMarker && resolvedDestination
+    showIncidentMarkers && selectedMarker
       ? isMobile
         ? 11
         : 12
       : hasMarkers
-        ? isMobile
-          ? 13
-          : 14
+        ? defaultZoom
         : isMobile
           ? 12
           : 13;
+  const resolvedZoom = embedded ? embeddedDefaultZoom : baseZoom;
 
   const heatmapData: GeoJSON.FeatureCollection<
     GeoJSON.Point,
@@ -264,10 +268,16 @@ export function IncidentMapScene({
   return (
     <div className="flex h-full flex-1 flex-col">
       {!showIncidentMarkers && isMobile ? <HeatmapLegend mobile /> : null}
-      <Card className="relative min-h-[calc(100dvh-var(--header-height))] flex-1 overflow-hidden rounded-none border-0 p-0 shadow-none">
+      <Card
+        className={
+          embedded
+            ? 'relative h-full w-full overflow-hidden rounded-none border-0 p-0 shadow-none'
+            : 'relative min-h-[calc(100dvh-var(--header-height))] flex-1 overflow-hidden rounded-none border-0 p-0 shadow-none'
+        }
+      >
         <Map
           center={mapCenter}
-          zoom={baseZoom}
+          zoom={resolvedZoom}
           onViewportChange={(viewport) => {
             setMapZoom(viewport.zoom);
           }}
