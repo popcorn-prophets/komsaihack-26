@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import type { DashboardPayload } from '@/lib/control-center-dashboard';
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 
 function formatMinutes(value: number | null) {
   if (value === null) return 'N/A';
@@ -75,11 +75,11 @@ export function SectionCards({ kpis }: SectionCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 gap-3 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       {cardsData.map((card, idx) => (
         <Card key={idx} className="@container/card">
           <CardHeader>
-            <CardDescription className="min-h-[3.25rem]">
+            <CardDescription className="min-h-9">
               {card.description}
             </CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">

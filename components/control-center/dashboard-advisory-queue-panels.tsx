@@ -3,13 +3,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
@@ -102,9 +96,6 @@ export function DashboardAdvisoryQueuePanels({
       <Card className="min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle>Recent Advisories</CardTitle>
-          <CardDescription>
-            Recent Advisories that have been published
-          </CardDescription>
         </CardHeader>
         <CardContent className="px-0 pb-0">
           <div className="flex flex-col gap-4">
@@ -161,13 +152,9 @@ export function DashboardAdvisoryQueuePanels({
       <Card className="min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle>Incident Pressure</CardTitle>
-          <CardDescription>
-            Actionable pressure check for open load, severity, aging, and SLA
-            risk.
-          </CardDescription>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-4 overflow-hidden">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             {pressureMetrics.map((metric) => (
               <div
                 key={metric.label}
@@ -176,16 +163,16 @@ export function DashboardAdvisoryQueuePanels({
                 <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   {metric.label}
                 </div>
-                <div className="mt-2 flex flex-col items-start gap-1 sm:flex-row sm:items-baseline sm:gap-2">
-                  <span className="text-2xl font-semibold tabular-nums sm:text-3xl">
+                <div className="mt-2 flex flex-wrap items-start gap-0.5 sm:items-baseline sm:gap-1">
+                  <span className="flex flex-wrap gap-1 text-lg items-center font-semibold tabular-nums sm:text-xl">
                     {metric.value.toLocaleString()}
                     {metric.suffix ? (
-                      <span className="ml-1 text-xl font-semibold sm:text-2xl">
+                      <span className="ml-1 text-sm font-semibold sm:text-md">
                         {metric.suffix}
                       </span>
                     ) : null}
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {metric.tone === 'critical'
                       ? 'High pressure'
                       : metric.tone === 'warning'
