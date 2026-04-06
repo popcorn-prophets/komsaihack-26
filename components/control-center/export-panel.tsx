@@ -25,7 +25,6 @@ import {
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -107,18 +106,15 @@ export function ExportPanel({
           Incident export
         </Badge>
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Export</h1>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            Export incident records for reporting and external sharing. The
-            files include incident fields, readable incident type labels,
-            reporter details, and simplified location text.
+            Export incident records for reporting and external sharing.
           </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Export filters</CardTitle>
+          <CardTitle>Filters</CardTitle>
           <CardDescription>
             Filter the export by incident date. Leave both fields blank to
             export all incidents.
@@ -130,7 +126,7 @@ export function ExportPanel({
             method="get"
             className="flex flex-col gap-4"
           >
-            <FieldGroup className="grid gap-4 md:grid-cols-2">
+            <FieldGroup className="grid gap-4 md:grid-cols-2 mb-4">
               <Field>
                 <FieldLabel htmlFor="export-start">Start date</FieldLabel>
                 <FieldContent>
@@ -141,9 +137,6 @@ export function ExportPanel({
                     value={startDate}
                     onChange={(event) => setStartDate(event.target.value)}
                   />
-                  <FieldDescription>
-                    Include incidents from the start of this day.
-                  </FieldDescription>
                 </FieldContent>
               </Field>
 
@@ -157,9 +150,6 @@ export function ExportPanel({
                     value={endDate}
                     onChange={(event) => setEndDate(event.target.value)}
                   />
-                  <FieldDescription>
-                    Include incidents through the end of this day.
-                  </FieldDescription>
                 </FieldContent>
               </Field>
             </FieldGroup>
@@ -202,12 +192,12 @@ export function ExportPanel({
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col items-start gap-2">
+        <CardFooter className="flex flex-col items-start gap-2 mt-4">
           <p className="text-sm text-muted-foreground">
             Current range:{' '}
             <span className="font-medium text-foreground">{rangeLabel}</span>
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Included fields: incident type labels, severity, status, incident
             timestamps, descriptions, simplified location details, and reporter
             information.
@@ -217,10 +207,9 @@ export function ExportPanel({
 
       <Card>
         <CardHeader>
-          <CardTitle>Filtered incident preview</CardTitle>
+          <CardTitle>Preview</CardTitle>
           <CardDescription>
-            {summary.total} incidents match the selected range. CSV and PDF
-            downloads use this same filtered dataset.
+            {summary.total} incidents match the selected range.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
