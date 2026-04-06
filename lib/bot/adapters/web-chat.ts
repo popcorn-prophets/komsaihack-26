@@ -279,6 +279,20 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
     const threadId = encodeWebChatThreadId(sessionId);
     const userName = payload.userName?.trim() || 'resident';
 
+    async function awaitTaskRegistration(
+      register: (waitUntil: (task: Promise<unknown>) => void) => void
+    ): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          register((task) => {
+            void task.then(() => resolve()).catch(reject);
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
     if (payload.eventType === 'action') {
       const actionId = payload.actionId?.trim();
       const actionMessageId = payload.actionMessageId?.trim();
@@ -290,24 +304,26 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
         );
       }
 
-      this.chat.processAction(
-        {
-          adapter: this,
-          actionId,
-          messageId: actionMessageId,
-          raw: payload,
-          threadId,
-          user: {
-            fullName: userName,
-            isBot: false,
-            isMe: false,
-            userId: `${sessionId}-resident`,
-            userName,
+      await awaitTaskRegistration((waitUntil) => {
+        this.chat?.processAction(
+          {
+            adapter: this,
+            actionId,
+            messageId: actionMessageId,
+            raw: payload,
+            threadId,
+            user: {
+              fullName: userName,
+              isBot: false,
+              isMe: false,
+              userId: `${sessionId}-resident`,
+              userName,
+            },
+            value: payload.value,
           },
-          value: payload.value,
-        },
-        options
-      );
+          { ...options, waitUntil }
+        );
+      });
 
       return Response.json({ ok: true, threadId });
     }
@@ -331,11 +347,12 @@ class WebChatAdapter implements Adapter<WebChatThreadId, WebChatRawMessage> {
       threadId,
     };
 
-    await this.chat.handleIncomingMessage(
-      this,
-      threadId,
-      this.parseMessage(raw)
-    );
+    await awaitTaskRegistration((waitUntil) => {
+      this.chat?.processMessage(this, threadId, this.parseMessage(raw), {
+        ...options,
+        waitUntil,
+      });
+    });
 
     return Response.json({ ok: true, threadId });
   }
