@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -119,6 +121,28 @@ function createSessionId(): string {
   }
 
   return `webchat_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function MarkdownMessage({ content }: { content: string }) {
+  return (
+    <div className="[&_p]:m-0 [&_p+p]:mt-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-black/10 [&_pre]:p-2 [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ ...props }) => (
+            <a
+              {...props}
+              className="underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer noopener"
+            />
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 export function WebChatInterface({
@@ -452,9 +476,9 @@ export function WebChatInterface({
                         : 'bg-primary text-primary-foreground'
                     }`}
                   >
-                    <p className="wrap-break-word whitespace-pre-wrap">
-                      {message.content}
-                    </p>
+                    <div className="wrap-break-word whitespace-pre-wrap">
+                      <MarkdownMessage content={message.content} />
+                    </div>
                     {hasLocation ? (
                       <div className="mt-2 rounded-lg border border-current/10 bg-background/50 px-2 py-1 text-xs">
                         Location shared:{' '}
