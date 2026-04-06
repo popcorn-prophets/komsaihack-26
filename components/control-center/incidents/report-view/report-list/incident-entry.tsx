@@ -8,6 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+  type IncidentSeverity,
+  type IncidentStatus,
+} from '@/lib/incidents/shared';
 import { type Incident } from '@/lib/supabase/reports';
 import { cn } from '@/lib/utils';
 import {
@@ -38,6 +44,16 @@ export function IncidentEntry({
 }: IncidentButtonProps) {
   const incidentType = incident.incident_type_id || 'Unknown Type';
   const reportedBy = incident.reported_by || 'Unknown Reporter';
+  const incidentSeverity: IncidentSeverity = INCIDENT_SEVERITIES.includes(
+    incident.severity as IncidentSeverity
+  )
+    ? (incident.severity as IncidentSeverity)
+    : 'low';
+  const incidentStatus: IncidentStatus = INCIDENT_STATUSES.includes(
+    incident.status as IncidentStatus
+  )
+    ? (incident.status as IncidentStatus)
+    : 'new';
 
   const handleClick = () => onClick?.(incident.id);
 
@@ -66,8 +82,8 @@ export function IncidentEntry({
             {incidentType}
           </CardTitle>
           <div className="shrink-0 flex flex-wrap items-center justify-end gap-1.5">
-            <IncidentSeverityBadge severity={incident.severity} />
-            <IncidentStatusBadge status={incident.status} />
+            <IncidentSeverityBadge severity={incidentSeverity} />
+            <IncidentStatusBadge status={incidentStatus} />
           </div>
         </div>
       </CardHeader>
