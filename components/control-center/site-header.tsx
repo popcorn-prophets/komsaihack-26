@@ -12,11 +12,11 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <RealtimeAvatarStack roomName="break_room" />
           <ThemeSwitcher />
         </div>
       </div>
-      <RealtimeAvatarStack roomName="break_roam" />
     </header>
   );
 }
