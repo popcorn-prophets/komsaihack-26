@@ -18,6 +18,14 @@ export interface IncidentSubmissionPayload {
   locationDescription?: string;
 }
 
+export interface ResidentIncidentStatusSummary {
+  id: string;
+  incidentTypeName: string;
+  severity: IncidentSeverity;
+  status: Enums<'incident_status'>;
+  updatedAt: string;
+}
+
 export async function fetchIncidentTypeNames(): Promise<string[]> {
   const supabase = createAdminClient();
 
@@ -107,4 +115,60 @@ export async function submitIncidentReport({
     console.error('Failed to insert incident report:', insertError);
     throw new Error('Failed to submit your report. Please try again later.');
   }
+}
+
+export async function fetchResidentIncidentStatuses(
+  thread: BotThread,
+  limit: number = 5
+): Promise<ResidentIncidentStatusSummary[]> {
+  const supabase = createAdminClient();
+
+  const { data: resident, error: residentError } = await supabase
+    .from('residents')
+    .select('id')
+    .eq('thread_id', thread.id)
+    .maybeSingle();
+
+  if (residentError) {
+    console.error(
+      'Failed to resolve resident for status lookup:',
+      residentError
+    );
+    throw new Error('Failed to identify your account. Please try again.');
+  }
+
+  if (!resident) {
+    throw new Error(
+      'You need to complete onboarding before checking report status.'
+    );
+  }
+
+  const { data, error } = await supabase
+    .from('incidents_with_details')
+    .select('id, incident_type_name, severity, status, updated_at')
+    .eq('reported_by', resident.id)
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to fetch resident incident statuses:', error);
+    throw new Error('Failed to load your report statuses. Please try again.');
+  }
+
+  return (data ?? [])
+    .filter(
+      (item) =>
+        typeof item.id === 'string' &&
+        typeof item.incident_type_name === 'string' &&
+        typeof item.severity === 'string' &&
+        typeof item.status === 'string' &&
+        typeof item.updated_at === 'string'
+    )
+    .map((item) => ({
+      id: item.id as string,
+      incidentTypeName: item.incident_type_name as string,
+      severity: item.severity as IncidentSeverity,
+      status: item.status as Enums<'incident_status'>,
+      updatedAt: item.updated_at as string,
+    }));
 }

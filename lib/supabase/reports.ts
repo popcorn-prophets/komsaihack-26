@@ -9,9 +9,9 @@ export interface Incident {
   reported_by: string;
   incident_type_id: string;
   location: string;
-  location_description: string;
+  location_description: string | null;
   severity: string;
-  description: string;
+  description: string | null;
   status: string;
   incident_time: string;
   created_at: string;
@@ -19,6 +19,8 @@ export interface Incident {
 }
 
 export async function fetchIncidents(
+  sortBy: string = 'incident_time',
+  sortOrder: string = 'descending',
   count: number = 50
 ): Promise<Incident[] | null> {
   try {
@@ -39,7 +41,9 @@ export async function fetchIncidents(
         residents (name),
         incident_types (name)`
       )
-      .order('created_at', { ascending: false })
+      .neq('status', 'resolved')
+      .neq('status', 'dismissed')
+      .order(sortBy, { ascending: sortOrder === 'ascending' ? true : false })
       .limit(count);
 
     if (error) {
@@ -117,6 +121,28 @@ export async function fetchIncidentTypeName(
   }
 }
 
+export async function fetchIncidentTypeID(
+  name: string
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('incident_types')
+      .select('id')
+      .eq('name', name)
+      .single();
+
+    if (error) {
+      console.error('Error fetching incident:', error);
+      return null;
+    }
+
+    return data.id;
+  } catch (error) {
+    console.error('Database fetch error:', error);
+    return null;
+  }
+}
+
 export async function fetchResidentName(id: string): Promise<string | null> {
   try {
     const { data, error } = await supabase
@@ -161,10 +187,10 @@ export async function fetchKanbanCategoryContents(
 
 export async function updateIncidentEntry(incident: Incident) {
   try {
-    const error = await supabase
+    const { error } = await supabase
       .from('incidents')
       .update({
-        location_description: incident.location,
+        location_description: incident.location_description,
         severity: incident.severity,
         description: incident.description,
         status: incident.status,
@@ -172,13 +198,13 @@ export async function updateIncidentEntry(incident: Incident) {
       .eq('id', incident.id);
 
     if (error) {
-      console.error('Error fetching incident:', error);
-      return null;
+      console.error('Error posting incident:', error);
+      return false;
     }
 
     return true;
   } catch (error) {
     console.error('Database fetch error:', error);
-    return null;
+    return false;
   }
 }

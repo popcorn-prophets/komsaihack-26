@@ -93,9 +93,11 @@ async function transcribeAudioAttachment(
 export async function parseFreeformIncidentReport({
   input,
   allowedIncidentTypeNames,
+  residentHomeContext,
 }: {
   input: unknown;
   allowedIncidentTypeNames: string[];
+  residentHomeContext?: string;
 }): Promise<ParsedIncidentReport> {
   if (allowedIncidentTypeNames.length === 0) {
     throw new Error(
@@ -209,8 +211,15 @@ export async function parseFreeformIncidentReport({
       schema: parsedIncidentSchema,
     }),
     temperature: 0,
-    system:
+    system: [
       'Extract a structured incident report from the provided text and incident image(s).',
+      residentHomeContext
+        ? `Resident home context: ${residentHomeContext}`
+        : undefined,
+      'Use the residence context to resolve vague location references such as "near my home" or "around the house" into a specific nearby location description when possible.',
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
     messages: [
       {
         role: 'user',

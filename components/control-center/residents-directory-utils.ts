@@ -1,3 +1,8 @@
+import {
+  getResidentLanguageLabel,
+  isResidentLanguage,
+  RESIDENT_LANGUAGE_OPTIONS,
+} from '@/lib/residents/languages';
 import type {
   ResidentDirectoryFilters,
   ResidentDirectoryRow,
@@ -15,8 +20,7 @@ export type ResidentDirectoryStats = {
   totalResidents: number;
   telegramCount: number;
   messengerCount: number;
-  filipinoCount: number;
-  englishCount: number;
+  languageCounts: Record<ResidentLanguage, number>;
   unknownLanguageCount: number;
 };
 
@@ -37,15 +41,7 @@ export function formatPlatform(platform: ResidentPlatform | null) {
 }
 
 export function formatLanguage(language: ResidentLanguage | null) {
-  if (language === 'fil') {
-    return 'Filipino';
-  }
-
-  if (language === 'eng') {
-    return 'English';
-  }
-
-  return 'Unknown language';
+  return getResidentLanguageLabel(language);
 }
 
 export function formatTimestamp(value: string | null) {
@@ -139,15 +135,23 @@ export function filterResidentDirectory(
 export function getResidentDirectoryStats(
   residents: ResidentDirectoryRow[]
 ): ResidentDirectoryStats {
-  const filipinoCount = residents.filter(
-    (resident) => resident.language === 'fil'
-  ).length;
-  const englishCount = residents.filter(
-    (resident) => resident.language === 'eng'
-  ).length;
-  const unknownLanguageCount = residents.filter(
-    (resident) => !resident.language
-  ).length;
+  const languageCounts = RESIDENT_LANGUAGE_OPTIONS.reduce(
+    (counts, { value }) => {
+      counts[value] = 0;
+      return counts;
+    },
+    {} as Record<ResidentLanguage, number>
+  );
+
+  let unknownLanguageCount = 0;
+
+  for (const resident of residents) {
+    if (isResidentLanguage(resident.language)) {
+      languageCounts[resident.language] += 1;
+    } else {
+      unknownLanguageCount += 1;
+    }
+  }
 
   return {
     totalResidents: residents.length,
@@ -157,8 +161,7 @@ export function getResidentDirectoryStats(
     messengerCount: residents.filter(
       (resident) => resident.platform === 'messenger'
     ).length,
-    filipinoCount,
-    englishCount,
+    languageCounts,
     unknownLanguageCount,
   };
 }

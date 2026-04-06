@@ -71,7 +71,7 @@ export async function requireRole(allowed: AppRole[]) {
   const user = await requireUser();
 
   if (!user.roles.some((assignment) => allowed.includes(assignment.role))) {
-    redirect('/forbidden');
+    redirect('/');
   }
 
   return user;

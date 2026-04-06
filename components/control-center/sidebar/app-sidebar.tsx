@@ -3,6 +3,7 @@
 import {
   IconAddressBook,
   IconChartBar,
+  IconDatabaseExport,
   IconDashboard,
   IconHelp,
   IconListDetails,
@@ -25,6 +26,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import type { AuthUser } from '@/lib/auth/types';
+import { canAccessIncidentExport } from '@/lib/incidents/export-config';
 import Logo from '../../brand/logo';
 
 export function AppSidebar({
@@ -35,6 +37,7 @@ export function AppSidebar({
     (assignment) =>
       assignment.role === 'admin' || assignment.role === 'super_admin'
   );
+  const canAccessExport = canAccessIncidentExport(viewer);
 
   const navMain = [
     {
@@ -62,6 +65,15 @@ export function AppSidebar({
       url: '/control-center/residents',
       icon: IconAddressBook,
     },
+    ...(canAccessExport
+      ? [
+          {
+            title: 'Export',
+            url: '/control-center/export',
+            icon: IconDatabaseExport,
+          },
+        ]
+      : []),
     ...(canAccessAdminPanel
       ? [
           {

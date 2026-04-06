@@ -1,10 +1,9 @@
 import type { BotThread } from '@/lib/bot/types';
 import { pointToString } from '@/lib/geo';
+import { isResidentLanguage } from '@/lib/residents/languages';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Point } from '@/types/geo';
 import type { Database } from '@/types/supabase';
-
-type ResidentLanguage = Database['public']['Enums']['resident_language'];
 
 export type ResidentSettingsEditableField = 'name' | 'language' | 'location';
 
@@ -31,10 +30,10 @@ export async function updateResidentThreadSetting({
   }
 
   if (field === 'language') {
-    if (typeof value !== 'string') {
+    if (!isResidentLanguage(value)) {
       throw new Error('Invalid language value.');
     }
-    updatePatch.language = value as ResidentLanguage;
+    updatePatch.language = value;
   }
 
   if (field === 'location') {

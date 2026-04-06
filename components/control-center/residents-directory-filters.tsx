@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RESIDENT_LANGUAGE_OPTIONS } from '@/lib/residents/languages';
 import type { ResidentDirectoryFilters } from '@/lib/residents/types';
 
 function SearchField({
@@ -80,8 +81,11 @@ export function ResidentsDirectoryFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All languages</SelectItem>
-          <SelectItem value="fil">Filipino</SelectItem>
-          <SelectItem value="eng">English</SelectItem>
+          {RESIDENT_LANGUAGE_OPTIONS.map(({ value, label }) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

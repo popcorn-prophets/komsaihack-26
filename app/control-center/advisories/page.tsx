@@ -1,22 +1,24 @@
 import { AdvisoryCard } from '@/components/advisory-card';
-import { AdvisoryComposeForm } from '@/components/advisory-compose-form';
+import { AdvisoryTargetingPanel } from '@/components/advisory-targeting-panel';
 import {
   getAdvisoryTemplates,
   getRecentAdvisories,
 } from '@/lib/advisories/data';
 import { requireRole } from '@/lib/auth/dal';
+import { getResidentDirectory } from '@/lib/residents/directory';
 
 export default async function Page() {
   await requireRole(['responder', 'admin', 'super_admin']);
-  const [advisories, templates] = await Promise.all([
+  const [advisories, templates, residents] = await Promise.all([
     getRecentAdvisories(),
     getAdvisoryTemplates(),
+    getResidentDirectory(),
   ]);
 
   return (
     <div className="@container/main flex flex-1 flex-col gap-6 px-4 py-4 md:py-6 lg:px-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-        <AdvisoryComposeForm templates={templates} />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
+        <AdvisoryTargetingPanel templates={templates} residents={residents} />
 
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-medium text-muted-foreground">

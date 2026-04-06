@@ -1,7 +1,8 @@
 import type { Enums } from '@/types/supabase';
+import type { ResidentLanguage } from './languages';
 
 export type ResidentPlatform = Enums<'resident_platform'>;
-export type ResidentLanguage = Enums<'resident_language'>;
+export type { ResidentLanguage } from './languages';
 
 export type ResidentDirectoryRow = {
   id: string;
