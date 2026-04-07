@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CardDecorator } from '@/components/ui/card-decorator';
 import { Bell, Bot, Globe, Map } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 
 const values = [
   {
@@ -36,28 +37,183 @@ const values = [
 ];
 
 export function AboutSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [hasEntered, setHasEntered] = useState(false);
+  const [hasSettled, setHasSettled] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasEntered) {
+          setHasEntered(true);
+          observer.disconnect();
+          setTimeout(() => setHasSettled(true), 1050);
+        }
+      },
+      { threshold: 0.6 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [hasEntered]);
+
   return (
     <section
       id="about"
+      ref={sectionRef}
       className="py-20 sm:py-32 -mt-20 relative w-full overflow-hidden"
     >
+      <style>{`
+        @keyframes hermes-enter {
+          0% {
+            transform: translateX(-140%) translateY(80px);
+            opacity: 0;
+          }
+          55% {
+            transform: translateX(-8%) translateY(-6px);
+            opacity: 1;
+          }
+          70% {
+            transform: translateX(-10%) translateY(3px);
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(-12%) translateY(0px);
+            opacity: 1;
+          }
+        }
+
+        @keyframes hermes-float {
+          0%, 100% {
+            transform: translateX(-12%) translateY(0px);
+          }
+          50% {
+            transform: translateX(-12%) translateY(-18px);
+          }
+        }
+
+        @keyframes hermes-glow-in {
+          0% {
+            filter:
+              drop-shadow(0 0 0px transparent)
+              drop-shadow(0 0 0px transparent)
+              drop-shadow(0 0 0px transparent);
+          }
+          100% {
+            filter:
+              drop-shadow(0 0 25px rgba(148, 163, 184, 0.9))
+              drop-shadow(0 0 60px rgba(148, 163, 184, 0.6))
+              drop-shadow(0 0 100px rgba(148, 163, 184, 0.35));
+          }
+        }
+
+        @keyframes hermes-glow-pulse {
+          0%, 100% {
+            filter:
+              drop-shadow(0 0 20px rgba(148, 163, 184, 0.85))
+              drop-shadow(0 0 55px rgba(148, 163, 184, 0.55))
+              drop-shadow(0 0 90px rgba(148, 163, 184, 0.3));
+          }
+          50% {
+            filter:
+              drop-shadow(0 0 35px rgba(148, 163, 184, 1))
+              drop-shadow(0 0 80px rgba(148, 163, 184, 0.75))
+              drop-shadow(0 0 130px rgba(148, 163, 184, 0.45));
+          }
+        }
+
+        @keyframes hermes-glow-in-dark {
+          0% {
+            filter:
+              drop-shadow(0 0 0px transparent)
+              drop-shadow(0 0 0px transparent)
+              drop-shadow(0 0 0px transparent);
+          }
+          100% {
+            filter:
+              drop-shadow(0 0 25px rgba(226, 232, 240, 0.8))
+              drop-shadow(0 0 60px rgba(226, 232, 240, 0.5))
+              drop-shadow(0 0 100px rgba(226, 232, 240, 0.28));
+          }
+        }
+
+        @keyframes hermes-glow-pulse-dark {
+          0%, 100% {
+            filter:
+              drop-shadow(0 0 20px rgba(226, 232, 240, 0.75))
+              drop-shadow(0 0 55px rgba(226, 232, 240, 0.45))
+              drop-shadow(0 0 90px rgba(226, 232, 240, 0.25));
+          }
+          50% {
+            filter:
+              drop-shadow(0 0 35px rgba(226, 232, 240, 0.95))
+              drop-shadow(0 0 80px rgba(226, 232, 240, 0.65))
+              drop-shadow(0 0 130px rgba(226, 232, 240, 0.38));
+          }
+        }
+
+        .hermes-enter {
+          animation:
+            hermes-enter 1s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+            hermes-float 6s ease-in-out 1s infinite;
+        }
+
+        .hermes-glow {
+          animation: hermes-glow-in 0.8s ease-out forwards;
+        }
+
+        .hermes-glow-float {
+          animation: hermes-glow-pulse 6s ease-in-out infinite;
+        }
+
+        .dark .hermes-glow {
+          animation: hermes-glow-in-dark 0.8s ease-out forwards;
+        }
+
+        .dark .hermes-glow-float {
+          animation: hermes-glow-pulse-dark 6s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Hermes background illustration */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-start">
-        <div className="relative h-[800px] w-[680px] -translate-x-[12%] opacity-[0.07] dark:opacity-[0.05]">
-          <Image
-            src={HermesBlack}
-            alt=""
-            fill
-            className="object-contain dark:hidden"
-            aria-hidden
-          />
-          <Image
-            src={HermesWhite}
-            alt=""
-            fill
-            className="hidden object-contain dark:block"
-            aria-hidden
-          />
+        <div
+          className={[
+            'relative h-[800px] w-[680px]',
+            hasSettled ? 'hermes-glow-float' : '',
+            !hasSettled && hasEntered ? 'hermes-glow' : '',
+            !hasEntered ? 'invisible' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <div
+            className={['absolute inset-0', hasEntered ? 'hermes-enter' : '']
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <div className="absolute inset-0 dark:hidden">
+              <Image
+                src={HermesBlack}
+                alt=""
+                fill
+                className="object-contain opacity-[0.09]"
+                aria-hidden
+              />
+            </div>
+            <div className="absolute inset-0 hidden dark:block">
+              <Image
+                src={HermesWhite}
+                alt=""
+                fill
+                className="object-contain opacity-[0.07]"
+                aria-hidden
+              />
+            </div>
+          </div>
         </div>
       </div>
 

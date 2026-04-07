@@ -6,6 +6,7 @@ import { ArrowRight, Play } from 'lucide-react';
 import { useState } from 'react';
 
 import demoThumbnail from '@/components/assets/image.png';
+import { LogoCarousel } from './logo-carousel';
 
 const INCIDENT_TYPES = [
   'Fire',
@@ -142,6 +143,7 @@ export function NewHeroSection() {
           </div>
         </div>
       </div>
+      <LogoCarousel />
     </section>
   );
 }

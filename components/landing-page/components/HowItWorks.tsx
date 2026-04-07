@@ -1,7 +1,7 @@
 'use client';
 
-import demoThumbnail from '@/components/assets/image.png';
-import mockLaptop from '@/components/assets/mock-laptop.png';
+import screenshot1 from '@/components/assets/screenshot1.png';
+import screenshot2 from '@/components/assets/screenshot2.png';
 import { StepOneIllustration } from '@/components/StepOne';
 import { StepThreeIllustration } from '@/components/StepThree';
 import { StepTwoIllustration } from '@/components/StepTwo';
@@ -21,7 +21,7 @@ function StepFourIllustration() {
   return (
     <div className="flex justify-center items-center">
       <Image
-        src={mockLaptop}
+        src={screenshot1}
         alt="Responder Dashboard Laptop"
         width={600}
         height={400}
@@ -36,7 +36,7 @@ function StepFiveIllustration() {
     <div className="flex justify-center items-center">
       <div className="relative w-full">
         <Image
-          src={demoThumbnail}
+          src={screenshot2}
           alt="Responder Dashboard"
           width={600}
           height={400}

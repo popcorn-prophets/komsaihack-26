@@ -1,9 +1,11 @@
 import { AuthButton } from '@/components/auth-button';
 import { Suspense } from 'react';
 import { ChallengesSection } from './components/ChallengeSection';
+import { ContactSection } from './components/ContactSection';
 import { CTASection } from './components/CtaSection';
 import { FaqSection } from './components/FaqSection';
 import { FeatureSection } from './components/FeatureSection';
+import Footer from './components/Footer';
 import { NewHeroSection as HeroSection } from './components/HeroSection';
 import { HowItWorks } from './components/HowItWorks';
 import { AboutSection } from './components/IntroducingHermes';
@@ -40,6 +42,8 @@ export default function LandingPage() {
         <TestimonialsSection />
         <FaqSection />
         <CTASection />
+        <ContactSection />
+        <Footer />
       </div>
     </main>
   );

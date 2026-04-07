@@ -84,7 +84,7 @@ export function StatSection() {
             </div>
 
             {/* 2x2 Cards */}
-            <div className="ml-12 grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               {disasterFacts.map((fact, index) => (
                 <div
                   key={index}
