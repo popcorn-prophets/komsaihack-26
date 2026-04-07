@@ -4,7 +4,7 @@ import {
   REALTIME_SUBSCRIBE_STATES,
   type RealtimePostgresChangesPayload,
 } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { IncidentMapSceneShell } from '@/components/control-center/map/incident-map-scene-shell';
 import {
@@ -79,6 +79,26 @@ export function RealtimeIncidentMapDemo({
   destination: DestinationMarker;
 }) {
   const [markers, setMarkers] = useState<IncidentMarker[]>(initialMarkers);
+  const [focusedMarkerId, setFocusedMarkerId] = useState<string | null>(
+    initialMarkers[0]?.id ?? null
+  );
+  const [mapRenderVersion, setMapRenderVersion] = useState(0);
+
+  const prioritizedMarkers = useMemo(() => {
+    if (!focusedMarkerId) {
+      return markers;
+    }
+
+    const focused = markers.find((marker) => marker.id === focusedMarkerId);
+    if (!focused) {
+      return markers;
+    }
+
+    return [
+      focused,
+      ...markers.filter((marker) => marker.id !== focusedMarkerId),
+    ];
+  }, [focusedMarkerId, markers]);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,6 +119,9 @@ export function RealtimeIncidentMapDemo({
         setMarkers((current) =>
           current.filter((marker) => marker.id !== deletedId)
         );
+        setFocusedMarkerId((current) =>
+          current === deletedId ? null : current
+        );
         return;
       }
 
@@ -111,6 +134,9 @@ export function RealtimeIncidentMapDemo({
         setMarkers((current) =>
           current.filter((marker) => marker.id !== nextIncident.id)
         );
+        setFocusedMarkerId((current) =>
+          current === nextIncident.id ? null : current
+        );
         return;
       }
 
@@ -119,10 +145,18 @@ export function RealtimeIncidentMapDemo({
         setMarkers((current) =>
           current.filter((marker) => marker.id !== nextIncident.id)
         );
+        setFocusedMarkerId((current) =>
+          current === nextIncident.id ? null : current
+        );
         return;
       }
 
       setMarkers((current) => upsertMarker(current, nextMarker));
+
+      if (payload.eventType === 'INSERT') {
+        setFocusedMarkerId(nextMarker.id);
+        setMapRenderVersion((current) => current + 1);
+      }
     };
 
     const channel = supabase
@@ -150,8 +184,9 @@ export function RealtimeIncidentMapDemo({
 
   return (
     <IncidentMapSceneShell
+      key={`realtime-map-${mapRenderVersion}-${focusedMarkerId ?? 'none'}`}
       embedded
-      markers={markers}
+      markers={prioritizedMarkers}
       destination={destination}
     />
   );
