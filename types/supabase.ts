@@ -509,7 +509,7 @@ export type Database = {
         | 'resolved'
         | 'dismissed';
       resident_language: 'eng' | 'fil' | 'hil';
-      resident_platform: 'telegram' | 'messenger';
+      resident_platform: 'telegram' | 'messenger' | 'webchat';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -653,7 +653,7 @@ export const Constants = {
         'dismissed',
       ],
       resident_language: ['eng', 'fil', 'hil'],
-      resident_platform: ['telegram', 'messenger'],
+      resident_platform: ['telegram', 'messenger', 'webchat'],
     },
   },
 } as const;

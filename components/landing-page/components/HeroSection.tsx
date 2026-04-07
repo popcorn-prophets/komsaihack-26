@@ -84,7 +84,7 @@ export function NewHeroSection() {
 
       {/* Hero Text + CTA */}
       <div className="relative z-10 w-full max-w-4xl text-center px-4">
-        <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl leading-tight">
+        <h1 className="mb-6 text-3xl font-bold tracking-tight md:text-4xl lg:text-6xl leading-tight">
           One Platform.
           <br />
           <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent inline-flex items-center justify-center">

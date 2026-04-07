@@ -37,6 +37,10 @@ export function formatPlatform(platform: ResidentPlatform | null) {
     return 'Messenger';
   }
 
+  if (platform === 'webchat') {
+    return 'Web Chat';
+  }
+
   return 'Unknown platform';
 }
 
