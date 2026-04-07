@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { HeroVideoDialog } from '@/components/ui/hero-video-dialog';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { ArrowRight, Play } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import demoThumbnail from '@/components/assets/image.png';
@@ -100,15 +101,20 @@ export function NewHeroSection() {
         </h1>
 
         <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-          HERMES unifies disaster reporting, real-time coordination, and
-          resource dispatching into a single AI-powered command center — so
-          responders act faster when every second counts.
+          The DRRM control center for incident reporting and information
+          dissemination through AI-powered chatbots.
         </p>
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button size="lg" className="h-10 w-45 text-base px-8 group gap-3">
-            Get Started
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          <Button
+            size="lg"
+            className="h-10 w-45 text-base px-8 group gap-3"
+            asChild
+          >
+            <Link href="/auth/login">
+              Get Started
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
           <Button
             size="lg"

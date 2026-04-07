@@ -38,11 +38,11 @@ export default function LandingPage() {
         <AboutSection />
         <FeatureSection />
         <HowItWorks />
-        <TeamSection />
         <TestimonialsSection />
         <FaqSection />
         <CTASection />
         <ContactSection />
+        <TeamSection />
         <Footer />
       </div>
     </main>

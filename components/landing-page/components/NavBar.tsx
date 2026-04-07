@@ -24,12 +24,10 @@ import Link from 'next/link';
 import { ReactNode, useState } from 'react';
 
 const navigationItems = [
-  { name: 'Home', href: '#hero' },
   { name: 'Features', href: '#features' },
-  { name: 'Team', href: '#team' },
-  { name: 'Pricing', href: '#pricing' },
   { name: 'FAQ', href: '#faq' },
   { name: 'Contact', href: '#contact' },
+  { name: 'Team', href: '#team' },
 ];
 
 // Smooth scroll function

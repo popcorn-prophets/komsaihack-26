@@ -144,7 +144,10 @@ const featureSections: FeatureSection[] = [
 
 export function FeatureSection() {
   return (
-    <section className="-mt-20 py-24 sm:py-32 bg-muted/30 relative w-full">
+    <section
+      className="-mt-20 py-24 sm:py-32 bg-muted/30 relative w-full"
+      id="features"
+    >
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-24">

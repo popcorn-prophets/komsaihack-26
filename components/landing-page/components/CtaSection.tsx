@@ -79,7 +79,7 @@ export function CTASection() {
                   className="cta-btn cursor-pointer px-8 py-4 text-lg font-medium"
                   asChild
                 >
-                  <a href="#get-started">Get Started</a>
+                  <a href="/auth/login">Get Started</a>
                 </Button>
               </div>
             </div>

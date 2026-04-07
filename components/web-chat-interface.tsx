@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import { ChatChannelLinks } from '@/components/chat-channel-links';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -69,6 +70,7 @@ interface WebChatInterfaceProps {
   apiEndpoint?: string;
   className?: string;
   description?: string;
+  showChannelLinks?: boolean;
   title?: string;
   userName?: string;
 }
@@ -151,6 +153,7 @@ export function WebChatInterface({
   className,
   description = '',
   title = 'HERMES Web Chat',
+  showChannelLinks = true,
   userName = 'web-chat-user',
 }: WebChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -461,8 +464,17 @@ export function WebChatInterface({
       )}
     >
       <CardHeader className="border-b bg-muted/20 px-4 py-3 sm:px-5">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <CardTitle>{title}</CardTitle>
+            {description ? (
+              <CardDescription>{description}</CardDescription>
+            ) : null}
+          </div>
+          {showChannelLinks ? (
+            <ChatChannelLinks className="sm:justify-end" />
+          ) : null}
+        </div>
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 p-0">

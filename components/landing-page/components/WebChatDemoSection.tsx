@@ -1,6 +1,7 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import Link from 'next/link';
 
+import { ChatChannelLinks } from '@/components/chat-channel-links';
 import {
   type DestinationMarker,
   type IncidentMarker,
@@ -89,6 +90,9 @@ export async function WebChatDemoSection() {
             </div>
 
             <div className="mx-auto w-full max-w-105">
+              <div className="mb-3 flex justify-center">
+                <ChatChannelLinks />
+              </div>
               <div className="relative rounded-[2.5rem] border border-foreground/15 bg-linear-to-b from-zinc-200 to-zinc-300 p-2 shadow-2xl dark:from-zinc-800 dark:to-zinc-900">
                 <div className="absolute left-1/2 top-2 h-5 w-36 -translate-x-1/2 rounded-b-2xl bg-zinc-900/95" />
 
@@ -96,6 +100,7 @@ export async function WebChatDemoSection() {
                   <div className="h-[min(72vh,740px)] min-h-140">
                     <WebChatInterface
                       title="Chat"
+                      showChannelLinks={false}
                       className="h-full rounded-none border-0 shadow-none"
                     />
                   </div>
