@@ -84,9 +84,6 @@ export async function WebChatDemoSection() {
           <div className="space-y-3 justify-center">
             <div className="flex items-center justify-center gap-2">
               <Badge variant="secondary">Resident Chat</Badge>
-              <span className="text-xs text-muted-foreground">
-                Mobile-first conversation mockup
-              </span>
             </div>
 
             <div className="mx-auto w-full max-w-105">
@@ -96,8 +93,7 @@ export async function WebChatDemoSection() {
                 <div className="overflow-hidden rounded-4xl border border-black/10 bg-background">
                   <div className="h-[min(72vh,740px)] min-h-140">
                     <WebChatInterface
-                      title="HERMES Mobile Chat"
-                      description="Demo simulation on the web interface"
+                      title="Chat"
                       className="h-full rounded-none border-0 shadow-none"
                     />
                   </div>
@@ -108,10 +104,7 @@ export async function WebChatDemoSection() {
 
           <div className="space-y-3 justify-center">
             <div className="flex items-center justify-center gap-2">
-              <Badge variant="secondary">Dashboard Mock</Badge>
-              <span className="text-xs text-muted-foreground">
-                Incident map preview and status context
-              </span>
+              <Badge variant="secondary">Control Center</Badge>
             </div>
 
             <div className="rounded-4xl border bg-card p-3 shadow-lg sm:p-4">
@@ -120,9 +113,6 @@ export async function WebChatDemoSection() {
                   <h3 className="text-sm font-semibold sm:text-base">
                     Live incident map
                   </h3>
-                  <p className="text-xs text-muted-foreground sm:text-sm">
-                    Reflecting current reports near the command center
-                  </p>
                 </div>
                 <Badge variant="outline">Operations</Badge>
               </div>
